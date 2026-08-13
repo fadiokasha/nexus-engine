@@ -40,19 +40,21 @@ export default function Home() {
   };
 
   // إرسال البيانات إلى الـ API وخزن الجواز
-  const handlePath1Submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.selectedSectors.length === 0) {
-      alert("يرجى اختيار قطاع تشغيلي واحد على الأقل.");
-      return;
-    }
+const handlePath1Submit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!formData.passportFile) {
-      alert("يرجى رفع صورة جواز السفر.");
-      return;
-    }
+  if (formData.selectedSectors.length === 0) {
+    alert("يرجى اختيار قطاع تشغيلي واحد على الأقل");
+    return;
+  }
 
-    setIsSubmitting(true);
+  if (!formData.passportFile) {
+    alert("يرجى رفع صورة جواز السفر");
+    return;
+  }
+
+  setIsSubmitting(true);
+  alert("تم إرسال بيانات العقد وتأكيد الطلب بنجاح. جاري إعداد صفحة الدفع الإلكتروني...");
 
     try {
       const dataToSend = new FormData();
@@ -426,7 +428,14 @@ export default function Home() {
                       <div className="flex gap-2">
                         <span className="bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700">VISA</span>
                         <span className="bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700">MADA</span>
-                        <span className="bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700">MASTERCARD</span>
+                        <div className="mt-4 p-3 bg-slate-900 border border-slate-700 rounded-lg text-center">
+  <p className="text-sm font-bold text-white mb-1">
+    💳 يقبل الدفع عبر: <span className="text-amber-400">MasterCard</span> — <span className="text-amber-400">mada</span> — <span className="text-amber-400">Visa</span>
+  </p>
+  <p className="text-xs text-slate-200 font-medium">
+    🔒 جميع العمليات مشفرة ومؤمنة بالكامل بأعلى معايير الأمان الرقمي
+  </p>
+</div>
                       </div>
                     </div>
                     <p className="text-[10px] text-slate-600 text-center">
