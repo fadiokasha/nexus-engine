@@ -24,7 +24,7 @@ export default function Home() {
   const [path2Data, setPath2Data] = useState({ name: "", email: "", phone: "" });
   const [path2Submitted, setPath2Submitted] = useState(false);
 
-  // التعامل مع اختيار القطاعات
+          // التعامل مع اختطاعات
   const handleSectorChange = (sector: string) => {
     if (formData.selectedSectors.includes(sector)) {
       setFormData({
@@ -326,6 +326,25 @@ export default function Home() {
                 <p className="text-slate-300 text-xs mb-6">
                   أدخل بياناتك الرسمية واختر القطاعات المراد تفعيلها لتوليد عقد اتفاقية المشاركة الموثق.
                 </p>
+                {/* حقل النطاق الجغرافي / الإقليمي */}
+<div className="mb-4 text-right">
+  <label className="block text-xs font-semibold text-slate-300 mb-1">
+    النطاق الجغرافي / الإقليمي المستهدف
+  </label>
+  <select
+    name="region"
+    required
+    className="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm text-right focus:outline-none focus:border-amber-400"
+  >
+    <option value="">اختر النطاق الجغرافي والإقليمي...</option>
+    <option value="GCC">دول مجلس التعاون الخليجي (GCC)</option>
+    <option value="MENA">الشرق الأوسط وشمال إفريقيا (MENA)</option>
+    <option value="UAE">دولة الإمارات العربية المتحدة</option>
+    <option value="KSA">المملكة العربية السعودية</option>
+    <option value="EGY">جمهورية مصر العربية</option>
+    <option value="GLOBAL">نطاق عالمي / دولي (Global)</option>
+  </select>
+</div>
 
                 <form onSubmit={handlePath1Submit} className="space-y-4">
                   <div>
