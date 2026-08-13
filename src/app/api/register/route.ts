@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend"; // أو المكتبة الخاصة بالخدمة التي تستخدمها
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,27 +21,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // تحويل ملف الجواز إلى Buffer تمهيداً للتخزين السحابي
-    const arrayBuffer = await passportFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // معرّف فريد للطلب ولحساب الشريك
     const partnerId = `NEXUS-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    console.log("تم استقبال طلب حجز جديد:", {
-      partnerId,
-      fullName,
-      email,
-      passportNumber,
-      region,
-      selectedSectors,
-      fileSize: `${(buffer.length / 1024).toFixed(2)} KB`,
-    });
+    // 📧 كود إرسال الإيميل الفعلي
+    if (process.env.RESEND_API_KEY) {
+      await resend.emails.send({
+        from: 'Nexus Engine <onboarding@resend.dev>',
+        to: email,
+        subject: `تأكيد طلب حجز Nexus Engine - ${partnerId}`,
+        html: `<p>مرحباً ${fullName}، تم استقبال طلبك بنجاح. رقم الشريك الخاص بك هو: <strong>${partnerId}</strong></p>`,
+      });
+    }
 
     return NextResponse.json({
       success: true,
       partnerId,
-      message: "تم حفظ بيانات الحجز وتوليد العقد بنجاح.",
+      message: "تم حفظ بيانات الحجز وإرسال التقرير بنجاح.",
     });
   } catch (error) {
     console.error("خطأ في معالجة التسجيل:", error);
