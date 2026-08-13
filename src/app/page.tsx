@@ -84,10 +84,35 @@ const handlePath1Submit = async (e: React.FormEvent) => {
     }
   };
 
-  const handlePath2Submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPath2Submitted(true);
-  };
+  const handlePath2Submit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // 1. فتح/تحميل التقرير الفني والملف التقديمي مباشرة في تبويب جديد
+  window.open("https://your-domain.com/technical-report.pdf", "_blank");
+
+  // 2. إرسال البريد الإلكتروني التلقائي فوراً عبر API المباشر لـ EmailJS
+  try {
+    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        service_id: 'YOUR_SERVICE_ID',   // سيتغير مستقبلاً
+        template_id: 'YOUR_TEMPLATE_ID',  // سيتغير مستقبلاً
+        user_id: 'YOUR_PUBLIC_KEY',       // سيتغير مستقبلاً
+        template_params: {
+          user_name: formData.fullName || "عميل جديد",
+          user_email: formData.email || "",
+          user_phone: formData.phone || "",
+        },
+      }),
+    });
+    alert("تم فتح التقرير للتحميل المباشر، وأُرسلت نسخة رسمية إلى بريدك الإلكتروني.");
+  } catch (error) {
+    console.error("خطأ في إرسال البريد الإلكتروني:", error);
+  }
+};
 
   return (
     <div className="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950" dir="rtl">
