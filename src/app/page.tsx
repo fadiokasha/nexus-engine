@@ -88,7 +88,7 @@ const handlePath1Submit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   // 1. فتح/تحميل التقرير الفني والملف التقديمي مباشرة في تبويب جديد
-  window.open("https://your-domain.com/technical-report.pdf", "_blank");
+  window.open("/technical-report.pdf", "_blank");
 
   // 2. إرسال البريد الإلكتروني التلقائي فوراً عبر API المباشر لـ EmailJS
   try {
