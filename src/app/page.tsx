@@ -424,7 +424,7 @@ export default function Home() {
                 onClick={() => setModal(null)}
                 className="w-full bg-white/10 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/20 transition-colors"
               >
-                إغلاق النافذة
+                تم
               </button>
             </div>
           </div>
