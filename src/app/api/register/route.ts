@@ -21,6 +21,7 @@ const REPORT_PUBLIC_PATH = "/technical-report.pdf";
 interface RegisterBody {
   fullName?: string;
   email?: string;
+  phone?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
 
   const fullName = body.fullName?.trim();
   const email = body.email?.trim();
+  const phone = body.phone?.trim();
 
   if (!fullName || fullName.length < 2) {
     return NextResponse.json({ error: "الاسم الكامل مطلوب" }, { status: 400 });
@@ -41,12 +43,20 @@ export async function POST(req: NextRequest) {
   if (!email || !EMAIL_REGEX.test(email)) {
     return NextResponse.json({ error: "بريد إلكتروني غير صالح" }, { status: 400 });
   }
+  if (!phone || phone.length < 8) {
+    return NextResponse.json({ error: "رقم جوال غير صالح" }, { status: 400 });
+  }
   if (!process.env.RESEND_API_KEY) {
     console.error("RESEND_API_KEY غير مضبوط في .env.local");
     return NextResponse.json({ error: "إعداد البريد غير مكتمل على السيرفر" }, { status: 500 });
   }
 
   const requestId = crypto.randomUUID();
+
+  // TODO (إنتاج): خزّن fullName/email/phone/requestId في جدول leads بقاعدة
+  // البيانات (نفس أسلوب vetting_requests) عشان تقدر تتابعهم لاحقًا بدل ما
+  // تعتمد فقط على البريد. حاليًا نكتفي بتسجيلها بالـ log.
+  console.log(`[register] lead جديد: ${fullName} / ${email} / ${phone} (requestId=${requestId})`);
 
   const fromAddress = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
 
@@ -66,6 +76,9 @@ export async function POST(req: NextRequest) {
   // يحمّله من هناك حتى لو تعطّل البريد.
   let emailSent = false;
   try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nexusengine.ai";
+    const reportLink = `${siteUrl}${REPORT_PUBLIC_PATH}`;
+
     const { data, error } = await resend.emails.send({
       from: fromAddress,
       to: email,
@@ -74,8 +87,13 @@ export async function POST(req: NextRequest) {
         <div dir="rtl" style="font-family: sans-serif; line-height: 1.6;">
           <p>مرحبًا ${escapeHtml(fullName)}،</p>
           <p>شكرًا لاهتمامك بمنصة Nexus Engine. تقدر تحمّل التقرير الفني مباشرة من الرابط التالي:</p>
-          <p><a href="${process.env.NEXT_PUBLIC_SITE_URL ?? ""}${REPORT_PUBLIC_PATH}">تحميل التقرير الفني (PDF)</a></p>
-          <p style="color:#888; font-size:12px;">رقم الطلب المرجعي: ${requestId}</p>
+          <p><a href="${reportLink}">تحميل التقرير الفني (PDF)</a></p>
+          <p style="color:#888; font-size:12px;">الرقم المرجعي للطلب: ${requestId}</p>
+          <hr style="border:none; border-top:1px solid #eee; margin:20px 0;" />
+          <p style="font-size:13px;">
+            للعودة إلى منصة Nexus Engine في أي وقت:
+            <a href="${siteUrl}">${siteUrl}</a>
+          </p>
         </div>
       `,
     });
