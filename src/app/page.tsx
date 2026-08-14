@@ -245,7 +245,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">رقم الجوال / الواتساب</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1">رقم الجوال /</label>
               <input
                 type="tel"
                 required
