@@ -121,7 +121,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0C10] text-white font-sans selection:bg-[#D4AF37]" dir="rtl">
+    <div className="min-h-screen bg-[#0B0C10] text-white font-sans dir-rtl selection:bg-[#D4AF37] selection:text-black">
       {/* Header */}
       <header className="border-b border-[#D4AF37]/20 bg-[#0B0C10]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
