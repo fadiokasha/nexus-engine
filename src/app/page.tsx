@@ -1,657 +1,532 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  ShieldCheck,
-  Zap,
-  Lock,
-  CheckCircle2,
-  X,
-  Download,
-  FileText,
-  Phone,
-} from "lucide-react";
+import { useState } from 'react';
 
-/* ------------------------------------------------------------------ */
-/*  Modal عام قابل لإعادة الاستخدام (يُستخدم للمحتوى القانوني)          */
-/* ------------------------------------------------------------------ */
+export default function HomePage() {
+  // Form 1 State (Report)
+  const [reportName, setReportName] = useState('');
+  const [reportEmail, setReportEmail] = useState('');
+  const [reportPhone, setReportPhone] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportStatus, setReportStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-interface BaseModalProps {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}
+  // Form 2 State (Qualification Request)
+  const [qualName, setQualName] = useState('');
+  const [qualEmail, setQualEmail] = useState('');
+  const [qualPhone, setQualPhone] = useState('');
+  const [qualSector, setQualSector] = useState('التجارة الإلكترونية والأنظمة اللوجستية');
+  const [qualRegion, setQualRegion] = useState('');
+  const [qualAgreed, setQualAgreed] = useState(false);
+  const [qualLoading, setQualLoading] = useState(false);
+  const [qualStatus, setQualStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-function BaseModal({ title, onClose, children, icon }: BaseModalProps) {
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  // Modals State
+  const [activeModal, setActiveModal] = useState<'terms' | 'disclaimer' | 'privacy' | 'contract' | null>(null);
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-    >
-      <div
-        dir="rtl"
-        className="bg-[#1B222C] border border-[#D4AF37]/30 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4AF37]/20 shrink-0">
-          <div className="flex items-center gap-2">
-            {icon}
-            <h2 className="font-bold text-white">{title}</h2>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="إغلاق"
-            className="text-gray-400 hover:text-white transition-colors p-1"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="overflow-y-auto px-6 py-5 text-sm text-gray-300 leading-relaxed space-y-4">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  محتوى الروابط القانونية (مسودات — راجع ملاحظة أسفل كل صندوق)        */
-/* ------------------------------------------------------------------ */
-
-function DraftNotice({ text }: { text: string }) {
-  return (
-    <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 text-xs rounded-lg px-4 py-3">
-      {text}
-    </div>
-  );
-}
-
-function PrivacyModalContent() {
-  return (
-    <>
-      <DraftNotice text="⚠️ مسودة أولية غير نهائية وغير مراجعة من محامٍ. لا تُعتمد قبل مراجعة مستشار قانوني مختص بحماية البيانات." />
-      <p>[ضع هنا: البيانات التي تُجمع فعليًا من الاستمارات — الاسم، البريد، الجوال، المنطقة]</p>
-      <p>[ضع هنا: الغرض من جمع البيانات ومدة الاحتفاظ بها]</p>
-      <p>[ضع هنا: حقوق المستخدم بالوصول لبياناته أو حذفها وكيفية التواصل]</p>
-      <p>[ضع هنا: بيانات التواصل الرسمية للشركة المسجلة]</p>
-    </>
-  );
-}
-
-function TermsModalContent() {
-  return (
-    <>
-      <DraftNotice text="⚠️ مسودة أولية فقط، وليست وثيقة قانونية نهائية. يجب مراجعتها من محامٍ مختص بأنظمة الامتياز التجاري والاستثمار قبل تفعيل أي طلب فعلي." />
-      <p>[ضع هنا: تعريف دقيق لما يحصل عليه الشريك المرخّص له فعليًا]</p>
-      <p>[ضع هنا: آلية احتساب وتوزيع نسبة العمولة بالتفصيل، ومتى وكيف يتم التحويل]</p>
-      <p>[ضع هنا: مدة الترخيص، شروط التجديد أو الإنهاء من الطرفين]</p>
-      <p className="font-semibold text-white">
-        ملاحظة: النسب المذكورة بالموقع تقديرية وتخضع للاتفاقية الموقعة، وليست وعدًا بعائد استثماري مضمون.
-      </p>
-    </>
-  );
-}
-
-function DisclaimerModalContent() {
-  return (
-    <>
-      <DraftNotice text="⚠️ مسودة أولية — راجعها مع مستشار قانوني قبل الاعتماد النهائي." />
-      <p>
-        البرنامج الموضح في هذا الموقع هو ترخيص تشغيلي/تجاري وليس عرضًا لأوراق مالية أو صندوقًا استثماريًا أو ضمانًا
-        لأي عائد مالي.
-      </p>
-      <p>
-        النسب المالية المذكورة تقديرية، محسوبة بناءً على افتراضات تشغيلية حالية، وقابلة للتغيير. لا تمثل وعدًا أو
-        ضمانًا بعائد مستقبلي.
-      </p>
-      <p>تقديم أي طلب عبر هذا الموقع لا يشكّل قبولاً أو موافقة، وجميع الطلبات تخضع لمراجعة فعلية من الإدارة.</p>
-    </>
-  );
-}
-
-type LegalKey = "privacy" | "terms" | "disclaimer" | null;
-
-const LEGAL_META: Record<Exclude<LegalKey, null>, { title: string; content: React.ReactNode }> = {
-  privacy: { title: "سياسة الخصوصية", content: <PrivacyModalContent /> },
-  terms: { title: "وثيقة الترخيص", content: <TermsModalContent /> },
-  disclaimer: { title: "إخلاء المسؤولية", content: <DisclaimerModalContent /> },
-};
-
-/* ------------------------------------------------------------------ */
-/*  Modal عرض التقرير الفني (PDF) بعد نجاح نموذج تحميل التقرير          */
-/* ------------------------------------------------------------------ */
-
-interface ReportModalProps {
-  requestId: string;
-  reportUrl: string;
-  onClose: () => void;
-}
-
-function ReportModal({ requestId, reportUrl, onClose }: ReportModalProps) {
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="report-modal-title"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#1B222C] border border-[#D4AF37]/30 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4AF37]/20 shrink-0">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-[#D4AF37]" />
-            <h2 id="report-modal-title" className="font-bold text-white">
-              التقرير الفني
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="إغلاق"
-            className="text-gray-400 hover:text-white transition-colors p-1"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* ملاحظة: لو ظهرت صفحة بيضاء إضافية داخل المعاينة رغم باراميترات
-            العرض أدناه، الأغلب إنها موجودة فعليًا داخل ملف الـ PDF نفسه —
-            راجع الملف الأصلي وعدد صفحاته الحقيقي. */}
-        <div className="flex-1 overflow-hidden bg-white">
-          <iframe
-            key={reportUrl}
-            src={`${reportUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-            title="التقرير الفني"
-            className="w-full h-full min-h-[65vh] border-0 block"
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-[#D4AF37]/20 shrink-0">
-          <span className="text-xs text-gray-500 font-mono">رقم الطلب: {requestId}</span>
-          <a
-            href={reportUrl}
-            download
-            className="flex items-center gap-2 bg-[#D4AF37] hover:bg-[#E5C158] text-black font-bold text-sm px-5 py-2.5 rounded-lg transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            تحميل الملف
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  أداة مساعدة: تحليل استجابة fetch بأمان (تشخيص أفضل لأخطاء السيرفر)  */
-/* ------------------------------------------------------------------ */
-
-async function safeParseResponse(res: Response): Promise<{ ok: boolean; data: any; rawErrorText?: string }> {
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    // السيرفر رجّع شي مو JSON (صفحة خطأ HTML من Vercel مثلاً) — نلتقط النص
-    // الخام عشان تظهر رسالة مفيدة بدل "تعذر الاتصال بالسيرفر" العامة
-    const text = await res.text();
-    return { ok: false, data: null, rawErrorText: text.slice(0, 200) };
-  }
-  const data = await res.json();
-  return { ok: res.ok, data };
-}
-
-/* ------------------------------------------------------------------ */
-/*  نموذج تحميل التقرير الفني (Lead Magnet)                            */
-/* ------------------------------------------------------------------ */
-
-function ReportRequestForm() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [modalData, setModalData] = useState<{ requestId: string; reportUrl: string } | null>(null);
-
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      setStatus("submitting");
-      setErrorMsg("");
-
-      try {
-        const res = await fetch("/api/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fullName, email, phone }),
-        });
-
-        const { ok, data, rawErrorText } = await safeParseResponse(res);
-
-        if (!ok) {
-          setStatus("error");
-          setErrorMsg(data?.error ?? rawErrorText ?? "تعذر إرسال الطلب");
-          return;
-        }
-
-        setStatus("idle");
-        setModalData({ requestId: data.requestId, reportUrl: data.reportUrl ?? "/technical-report.pdf" });
-      } catch (err) {
-        console.error("register submit error:", err);
-        setStatus("error");
-        setErrorMsg("تعذر الاتصال بالسيرفر، تأكد من اتصالك وحاول مرة ثانية");
-      }
-    },
-    [fullName, email, phone]
-  );
-
-  return (
-    <>
-      <div className="bg-[#1B222C] border border-[#D4AF37]/20 rounded-2xl p-6 md:p-8">
-        <div className="flex items-center gap-2 mb-4">
-          <FileText className="w-5 h-5 text-[#D4AF37]" />
-          <h3 className="font-bold text-lg">حمّل التقرير الفني</h3>
-        </div>
-        <p className="text-gray-400 text-sm mb-6">
-          نظرة تقنية عامة على منصة Nexus Engine. هذا تحميل معلوماتي فقط ولا يشكّل تسجيلاً أو طلب شراكة.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {status === "error" && (
-            <div className="bg-red-500/10 border border-red-500/40 text-red-300 text-sm rounded-lg px-4 py-3">
-              {errorMsg}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">الاسم الكامل</label>
-            <input
-              type="text"
-              required
-              minLength={2}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">البريد الإلكتروني</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">رقم الجوال / الواتساب</label>
-            <div className="relative">
-              <Phone className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="tel"
-                required
-                placeholder="05xxxxxxxx"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg pr-10 pl-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={status === "submitting"}
-            className="w-full flex items-center justify-center gap-2 bg-transparent border border-[#D4AF37] hover:bg-[#D4AF37]/10 disabled:opacity-50 text-[#D4AF37] font-bold py-3 rounded-lg transition-colors"
-          >
-            {status === "submitting" ? (
-              "جاري التحضير..."
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                عرض وتحميل التقرير
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      {modalData && (
-        <ReportModal
-          requestId={modalData.requestId}
-          reportUrl={modalData.reportUrl}
-          onClose={() => setModalData(null)}
-        />
-      )}
-    </>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  نموذج طلب التأهيل للشراكة (مسار منفصل عبر /api/vetting)             */
-/* ------------------------------------------------------------------ */
-
-function VettingForm({ onOpenLegal }: { onOpenLegal: (key: Exclude<LegalKey, null>) => void }) {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    sector: "real-estate",
-    region: "",
-    capital: "50k-100k",
-  });
-
-  const [agreed, setAgreed] = useState(false);
-  const [status, setStatus] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [units, setUnits] = useState<{ total: number; available: number } | null>(null);
-
-  useEffect(() => {
-    fetch("/api/units")
-      .then(async (res) => {
-        const { ok, data } = await safeParseResponse(res);
-        if (ok) setUnits(data);
-      })
-      .catch(() => setUnits(null));
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Submit Report Request
+  const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("submitting");
-    setErrorMsg("");
+    setReportLoading(true);
+    setReportStatus(null);
 
     try {
-      const res = await fetch("/api/vetting", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'report',
+          name: reportName,
+          email: reportEmail,
+          phone: reportPhone,
+        }),
       });
 
-      const { ok, data, rawErrorText } = await safeParseResponse(res);
+      const data = await res.json();
 
-      if (ok) {
-        setStatus("submitted");
+      if (res.ok && data.success) {
+        setReportStatus({
+          type: 'success',
+          msg: `تم إرسال التقرير الفني بنجاح إلى بريدك (${reportEmail}) وأصبح جاهزاً للتحميل!`,
+        });
+        // Open PDF directly in new tab as fallback
+        if (data.pdfUrl) {
+          window.open(data.pdfUrl, '_blank');
+        }
       } else {
-        setStatus("error");
-        // نعرض رسالة السيرفر الحقيقية بدل رسالة عامة، تسهّل تشخيص أي عطل مستقبلي
-        setErrorMsg(data?.error ?? rawErrorText ?? "حصل خطأ غير متوقع من السيرفر");
+        setReportStatus({
+          type: 'error',
+          msg: data.error || 'حدث خطأ أثناء إرسال التقرير، يرجى المحاولة مرة أخرى.',
+        });
       }
-    } catch (err) {
-      console.error("vetting submit error:", err);
-      setStatus("error");
-      setErrorMsg("تعذر الاتصال بالسيرفر. تأكد إن متغيرات Supabase مضبوطة صح على Vercel، أو حاول مرة ثانية.");
+    } catch {
+      setReportStatus({
+        type: 'error',
+        msg: 'تعذر الاتصال بالسيرفر، تأكد من اتصالك بالإنترنت وحاول مرة أخرى.',
+      });
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  // Submit Qualification Request
+  const handleQualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!qualAgreed) {
+      setQualStatus({
+        type: 'error',
+        msg: 'يرجى الموافقة على الشروط وإخلاء المسؤولية للمتابعة.',
+      });
+      return;
+    }
+
+    setQualLoading(true);
+    setQualStatus(null);
+
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'qualification',
+          name: qualName,
+          email: qualEmail,
+          phone: qualPhone,
+          sector: qualSector,
+          region: qualRegion,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setQualStatus({
+          type: 'success',
+          msg: 'تم حفظ بياناتك وتوليد مسودة العقد بنجاح! سنقوم بمراجعة النطاق والتواصل معك.',
+        });
+        setActiveModal('contract');
+      } else {
+        setQualStatus({
+          type: 'error',
+          msg: data.error || 'حدث خطأ أثناء معالجة الطلب، يرجى المحاولة لاحقاً.',
+        });
+      }
+    } catch {
+      setQualStatus({
+        type: 'error',
+        msg: 'تعذر الاتصال بالسيرفر، تأكد من اتصالك بالإنترنت وحاول مرة أخرى.',
+      });
+    } finally {
+      setQualLoading(false);
     }
   };
 
   return (
-    <div className="bg-[#1B222C] border border-[#D4AF37]/30 p-8 rounded-2xl shadow-xl">
-      {status !== "submitted" ? (
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="mb-2">
-            <h3 className="text-xl md:text-2xl font-black text-[#D4AF37] mb-2">
-              طلب التأهيل للامتياز الجغرافي
-            </h3>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              مراجعة تفصيلية لأهلية النطاق الجغرافي المطلوب، تجريها لجنة مختصة قبل أي اعتماد. تعبئة هذا النموذج
-              خطوة تقييم أولى، وليست تسجيلاً نهائيًا أو التزامًا من أي طرف.
-            </p>
-          </div>
-
-          {status === "error" && (
-            <div className="bg-red-500/10 border border-red-500/40 text-red-300 text-sm rounded-lg px-4 py-3">
-              {errorMsg}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">الاسم الكامل</label>
-            <input
-              type="text"
-              required
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">البريد الإلكتروني الرسمي</label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">القطاع المستهدف</label>
-            <select
-              value={formData.sector}
-              onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-            >
-              <option value="real-estate">العقارات الرقمية</option>
-              <option value="e-commerce">التجارة الإلكترونية</option>
-              <option value="consulting">الخدمات الاستشارية</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">النطاق الجغرافي المطلوب</label>
-            <input
-              type="text"
-              required
-              placeholder="المدينة / الدولة"
-              value={formData.region}
-              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
-            />
-          </div>
-
-          {/* Checkbox: اتجاه RTL صحيح — النص والروابط بعنصر span واحد
-              محاذي بجانب المربع، بدل ما يكونوا أبناء متفرقين لعنصر label
-              يلفّون بشكل عشوائي */}
-          <label className="flex items-start gap-2 text-xs text-gray-400 pt-2 cursor-pointer">
-            <input
-              type="checkbox"
-              required
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-0.5 shrink-0"
-            />
-            <span className="leading-relaxed">
-              أقر بأنني اطّلعت على{" "}
-              <button
-                type="button"
-                onClick={() => onOpenLegal("terms")}
-                className="text-[#D4AF37] underline underline-offset-2"
-              >
-                وثيقة الترخيص
-              </button>{" "}
-              و{" "}
-              <button
-                type="button"
-                onClick={() => onOpenLegal("disclaimer")}
-                className="text-[#D4AF37] underline underline-offset-2"
-              >
-                إخلاء المسؤولية
-              </button>
-              ، وأن تقديم هذا الطلب لا يعني قبولاً مضمونًا.
-            </span>
-          </label>
-
-          <button
-            type="submit"
-            disabled={status === "submitting" || !agreed || (units !== null && units.available === 0)}
-            className="w-full bg-[#D4AF37] hover:bg-[#E5C158] disabled:opacity-50 text-black font-bold py-3.5 rounded-lg transition-all mt-4"
-          >
-            {status === "submitting" ? "جاري إرسال الطلب..." : "إرسال الطلب للمراجعة"}
-          </button>
-
-          {units && (
-            <p className="text-center text-xs text-gray-500">
-              {units.available > 0
-                ? `${units.available} وحدة متاحة من أصل ${units.total}`
-                : "لا توجد وحدات متاحة حاليًا"}
-            </p>
-          )}
-        </form>
-      ) : (
-        <div className="text-center py-6 space-y-4">
-          <CheckCircle2 className="w-12 h-12 text-[#D4AF37] mx-auto" />
-          <h4 className="text-xl font-bold">تم استلام طلبك بنجاح</h4>
-          <p className="text-gray-400 text-sm">
-            سيقوم فريق المراجعة بالتواصل معك عبر البريد الإلكتروني (
-            <span className="text-white">{formData.email}</span>) بعد دراسة النطاق الجغرافي المتاح. تقديم الطلب
-            لا يشكّل موافقة أو قبولاً.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  الصفحة الرئيسية                                                    */
-/* ------------------------------------------------------------------ */
-
-export default function NexusEngineLanding() {
-  const [openLegal, setOpenLegal] = useState<LegalKey>(null);
-
-  return (
-    <div className="min-h-screen bg-[#0B0C10] text-white font-sans selection:bg-[#D4AF37] selection:text-black">
+    <div className="min-h-screen bg-[#0B0C10] text-white font-sans dir-rtl selection:bg-[#D4AF37] selection:text-black">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0B0C10]/80 border-b border-[#D4AF37]/20 px-6 py-5">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3 space-x-reverse">
-            <div className="w-10 h-10 border-2 border-[#D4AF37] rotate-45 flex items-center justify-center bg-[#1B222C]">
-              <span className="text-[#D4AF37] -rotate-45 font-black text-xl">N</span>
+      <header className="border-b border-[#D4AF37]/20 bg-[#0B0C10]/90 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#8A7120] flex items-center justify-center font-bold text-black text-xl shadow-lg shadow-[#D4AF37]/20">
+              N
             </div>
             <div>
-              <span className="text-xl font-black tracking-wider text-white block">
-                NEXUS <span className="text-[#D4AF37]">ENGINE</span>
-              </span>
-              <span className="text-[10px] text-gray-400 uppercase tracking-widest block font-light">
-                برنامج ترخيص وشراكة تشغيل رقمي
-              </span>
+              <span className="font-extrabold text-xl tracking-wider text-white block leading-none">NEXUS ENGINE</span>
+              <span className="text-[10px] text-[#D4AF37] tracking-widest block mt-1 font-semibold">برنامج ترخيص وشراكة تشغيل رقمي</span>
             </div>
+          </div>
+          <div className="hidden sm:block">
+            <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30">
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
+              المقاعد المتاحة: 15 مقعداً استراتيجياً
+            </span>
           </div>
         </div>
       </header>
 
-      {/* Hero — فاصل رأسي أكبر بعد الهيدر + عنوان بدون انكسار كارثي */}
-      <section className="pt-24 md:pt-28 pb-16 px-6 text-center max-w-4xl mx-auto">
-        <h1 className="text-4xl md:text-6xl font-black leading-[1.3] md:leading-[1.25] mb-8 [text-wrap:balance]">
-          منظومة{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] via-yellow-100 to-[#D4AF37]">
-            الترخيص الرقمي
-          </span>{" "}
-          المدعومة{"\u00A0"}بالذكاء{"\u00A0"}الاصطناعي
-        </h1>
-        <p className="text-gray-400 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
-          ترخيص تشغيل لمنصتنا التقنية، بهيكل توزيع مالي مبني على نسبة 80% للشريك المرخّص له و20% لتشغيل المنصة
-          والذكاء الاصطناعي — نسبة تقديرية حسب تفاصيل اتفاقية الترخيص الكاملة.
-        </p>
-        <p className="text-xs text-gray-500 max-w-xl mx-auto">
-          هذا برنامج ترخيص تجاري وليس عرض أوراق مالية أو صندوق استثماري. النسب المذكورة تقديرية وتخضع للشروط
-          الكاملة في{" "}
-          <button onClick={() => setOpenLegal("terms")} className="text-[#D4AF37] underline underline-offset-2">
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
+        
+        {/* Hero Section */}
+        <section className="text-center space-y-6">
+          <div className="inline-block">
+            <span className="text-xs md:text-sm font-bold text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-4 py-1.5 rounded-full uppercase tracking-wider">
+              تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
+            </span>
+          </div>
+
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight max-w-4xl mx-auto">
+            منظومة إدارة الأصول الرقمية المؤتمتة — <span className="text-[#D4AF37]">NEXUS ENGINE</span>
+          </h1>
+
+          <p className="text-gray-300 text-sm md:text-base max-w-2xl mx-auto font-medium leading-relaxed">
+            امتلك امتياز تشغيل النطاق الإقليمي كـ &quot;مالك استراتيجي للأصل الرقمي&quot;. أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
+          </p>
+
+          <div className="bg-[#101827] border border-[#D4AF37]/30 rounded-xl p-4 max-w-2xl mx-auto shadow-xl">
+            <p className="text-xs md:text-sm font-bold text-gray-200">
+              ⚙️ هيكل توزيع العوائد: يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] text-base font-extrabold">80%</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] text-base font-extrabold">20%</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
+            </p>
+          </div>
+        </section>
+
+        {/* Value Proposition Cards */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-[#121926] border border-gray-800 rounded-xl p-6 space-y-3 hover:border-[#D4AF37]/50 transition shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] text-xl font-bold">
+              🔒
+            </div>
+            <h3 className="text-base font-bold text-white">حصريّة نطاق عند التوفر</h3>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              حصريّة جغرافية حسب توفر النطاق الفعلي، موثّقة بالعقد لضمان السيادة الكاملة على النطاق.
+            </p>
+          </div>
+
+          <div className="bg-[#121926] border border-gray-800 rounded-xl p-6 space-y-3 hover:border-[#D4AF37]/50 transition shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] text-xl font-bold">
+              🛡️
+            </div>
+            <h3 className="text-base font-bold text-white">توزيع مالي موثّق (80% / 20%)</h3>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              تحويلات مسجّلة وفق دورة محدّدة في العقد، بعد الرسوم والضرائب، لضمان أعلى عائد استثماري.
+            </p>
+          </div>
+
+          <div className="bg-[#121926] border border-gray-800 rounded-xl p-6 space-y-3 hover:border-[#D4AF37]/50 transition shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] text-xl font-bold">
+              ⚡
+            </div>
+            <h3 className="text-base font-bold text-white">أتمتة تشغيلية بالذكاء الاصطناعي</h3>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              أدوات مؤتمتة لإدارة العمليات اليومية للمرخص له، تضمن استمرارية العمل على مدار الساعة.
+            </p>
+          </div>
+        </section>
+
+        {/* FORM 1: Report Download */}
+        <section className="bg-[#101827] border border-[#D4AF37]/30 rounded-2xl p-6 md:p-8 max-w-2xl mx-auto shadow-2xl space-y-6">
+          <div className="space-y-2 text-center">
+            <h2 className="text-xl font-bold text-white flex items-center justify-center gap-2">
+              📄 حمل التقرير الفني والملف التقديمي
+            </h2>
+            <p className="text-xs text-gray-400 font-medium">
+              هذا تحميل معلوماتي يتضمن نظرة تقنية وعملية عامة على منصة Nexus Engine وهيكل الشراكة.
+            </p>
+          </div>
+
+          {reportStatus && (
+            <div className={`p-4 rounded-xl text-xs font-bold ${reportStatus.type === 'success' ? 'bg-green-950/80 border border-green-500 text-green-300' : 'bg-red-950/80 border border-red-500 text-red-300'}`}>
+              {reportStatus.msg}
+            </div>
+          )}
+
+          <form onSubmit={handleReportSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">الاسم الكامل</label>
+              <input
+                type="text"
+                required
+                value={reportName}
+                onChange={(e) => setReportName(e.target.value)}
+                placeholder="أدخل اسمك الكريم"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">البريد الإلكتروني</label>
+              <input
+                type="email"
+                required
+                value={reportEmail}
+                onChange={(e) => setReportEmail(e.target.value)}
+                placeholder="name@company.com"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">رقم الجوال / الواتساب</label>
+              <input
+                type="tel"
+                required
+                value={reportPhone}
+                onChange={(e) => setReportPhone(e.target.value)}
+                placeholder="+20 123 456 7890"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={reportLoading}
+              className="w-full bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37] font-bold py-3 rounded-xl transition duration-200 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            >
+              {reportLoading ? 'جاري إعداد التقرير...' : '📥 عرض وتحميل التقرير الفني'}
+            </button>
+          </form>
+        </section>
+
+        {/* FORM 2: Executive Qualification Request */}
+        <section className="bg-[#101827] border border-[#D4AF37]/40 rounded-2xl p-6 md:p-8 max-w-2xl mx-auto shadow-2xl space-y-6">
+          <div className="space-y-2 text-center">
+            <h2 className="text-xl md:text-2xl font-extrabold text-[#D4AF37]">
+              طلب التأهيل للامتياز الجغرافي والسيادة التشغيلية
+            </h2>
+            <p className="text-xs text-gray-300 font-medium">
+              قدم طلبك لنيل الامتياز الإقليمي الحصري كـ &quot;مالك أصل رقمي مؤتمت&quot; وحجز النطاق المستهدف.
+            </p>
+          </div>
+
+          {qualStatus && (
+            <div className={`p-4 rounded-xl text-xs font-bold ${qualStatus.type === 'success' ? 'bg-green-950/80 border border-green-500 text-green-300' : 'bg-red-950/80 border border-red-500 text-red-300'}`}>
+              {qualStatus.msg}
+            </div>
+          )}
+
+          <form onSubmit={handleQualSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">الاسم الكامل</label>
+              <input
+                type="text"
+                required
+                value={qualName}
+                onChange={(e) => setQualName(e.target.value)}
+                placeholder="أدخل اسمك الكامل"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">البريد الإلكتروني الرسمي</label>
+              <input
+                type="email"
+                required
+                value={qualEmail}
+                onChange={(e) => setQualEmail(e.target.value)}
+                placeholder="name@domain.com"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">رقم الجوال / الواتساب الرسمي</label>
+              <input
+                type="tel"
+                required
+                value={qualPhone}
+                onChange={(e) => setQualPhone(e.target.value)}
+                placeholder="+20 123 456 7890"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">القطاع المستهدف</label>
+              <select
+                value={qualSector}
+                onChange={(e) => setQualSector(e.target.value)}
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              >
+                <option value="التجارة الإلكترونية والأنظمة اللوجستية">التجارة الإلكترونية والأنظمة اللوجستية</option>
+                <option value="العقارات الرقمية والأصول المبرمجة">العقارات الرقمية والأصول المبرمجة</option>
+                <option value="الخدمات المالية وأتمتة الأعمال">الخدمات المالية وأتمتة الأعمال</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">النطاق الجغرافي المطلوب (المدينة / الدولة)</label>
+              <input
+                type="text"
+                required
+                value={qualRegion}
+                onChange={(e) => setQualRegion(e.target.value)}
+                placeholder="مثال: الشرق الأوسط وشمال أفريقيا / مصر / الإمارات"
+                className="w-full bg-[#0B0C10] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition"
+              />
+            </div>
+
+            {/* RTL Clean Checkbox Agreement */}
+            <div className="flex items-start gap-3 pt-2">
+              <input
+                type="checkbox"
+                id="agreeTerms"
+                checked={qualAgreed}
+                onChange={(e) => setQualAgreed(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-700 bg-[#0B0C10] text-[#D4AF37] focus:ring-[#D4AF37]"
+              />
+              <label htmlFor="agreeTerms" className="text-xs text-gray-300 leading-relaxed">
+                أقر بأنني اطلعت وافقت على{' '}
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('terms')}
+                  className="text-[#D4AF37] underline font-bold hover:text-amber-300"
+                >
+                  وثيقة الترخيص
+                </button>
+                {' '}و{' '}
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('disclaimer')}
+                  className="text-[#D4AF37] underline font-bold hover:text-amber-300"
+                >
+                  إخلاء المسؤولية
+                </button>
+                {' '}وأن تقديم هذا الطلب لا يعني قبولاً مضموناً إلا بعد المراجعة.
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={qualLoading}
+              className="w-full bg-[#D4AF37] hover:bg-[#b8972e] text-black font-extrabold py-3.5 rounded-xl transition duration-200 shadow-lg shadow-[#D4AF37]/20 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            >
+              {qualLoading ? 'جاري التقييم والاعتماد...' : '🚀 إرسال الطلب للمراجعة والاعتماد'}
+            </button>
+          </form>
+        </section>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-[#D4AF37]/10 py-8 text-center text-xs text-gray-500 space-y-4">
+        <div className="flex justify-center gap-6 flex-wrap font-semibold text-gray-400">
+          <button onClick={() => setActiveModal('terms')} className="hover:text-[#D4AF37] transition">
             وثيقة الترخيص
-          </button>{" "}
-          و{" "}
-          <button
-            onClick={() => setOpenLegal("disclaimer")}
-            className="text-[#D4AF37] underline underline-offset-2"
-          >
+          </button>
+          <span>•</span>
+          <button onClick={() => setActiveModal('disclaimer')} className="hover:text-[#D4AF37] transition">
             إخلاء المسؤولية
           </button>
-          .
-        </p>
-      </section>
-
-      {/* Value Pillars */}
-      <section className="py-12 px-6 max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
-        <div className="bg-[#1B222C] border border-[#D4AF37]/20 p-6 rounded-2xl">
-          <Zap className="w-6 h-6 text-[#D4AF37] mb-4" />
-          <h3 className="font-bold mb-2">أتمتة تشغيلية</h3>
-          <p className="text-gray-400 text-sm">أدوات مؤتمتة لإدارة العمليات اليومية للمرخّص له.</p>
-        </div>
-        <div className="bg-[#1B222C] border border-[#D4AF37]/20 p-6 rounded-2xl">
-          <ShieldCheck className="w-6 h-6 text-[#D4AF37] mb-4" />
-          <h3 className="font-bold mb-2">توزيع مالي موثّق</h3>
-          <p className="text-gray-400 text-sm">تحويلات مسجّلة وفق دورة محددة في العقد، بعد الرسوم والضريبة.</p>
-        </div>
-        <div className="bg-[#1B222C] border border-[#D4AF37]/20 p-6 rounded-2xl">
-          <Lock className="w-6 h-6 text-[#D4AF37] mb-4" />
-          <h3 className="font-bold mb-2">حصرية نطاق عند التوفر</h3>
-          <p className="text-gray-400 text-sm">حصرية جغرافية حسب توفر النطاق الفعلي، موثقة بالعقد.</p>
-        </div>
-      </section>
-
-      {/* نموذج تحميل التقرير الفني - Lead Magnet مستقل */}
-      <section className="py-12 px-6 max-w-2xl mx-auto">
-        <ReportRequestForm />
-      </section>
-
-      {/* نموذج طلب التأهيل - مسار مستقل بنظامه الاعتمادي عبر /admin */}
-      <section className="py-12 px-6 max-w-2xl mx-auto" id="vetting-section">
-        <VettingForm onOpenLegal={setOpenLegal} />
-      </section>
-
-      {/* Footer — روابط تفتح Modals بدل صفحات منفصلة */}
-      <footer className="border-t border-[#D4AF37]/10 py-6 text-center text-xs text-gray-500 space-y-2 px-6">
-        <p>© 2026 Nexus Engine. جميع الحقوق محفوظة.</p>
-        <p className="flex justify-center gap-4 flex-wrap">
-          <button onClick={() => setOpenLegal("privacy")} className="underline hover:text-gray-300">
+          <span>•</span>
+          <button onClick={() => setActiveModal('privacy')} className="hover:text-[#D4AF37] transition">
             سياسة الخصوصية
           </button>
-          <button onClick={() => setOpenLegal("terms")} className="underline hover:text-gray-300">
-            وثيقة الترخيص
-          </button>
-          <button onClick={() => setOpenLegal("disclaimer")} className="underline hover:text-gray-300">
-            إخلاء المسؤولية
-          </button>
-        </p>
+        </div>
+        <p>© {new Date().getFullYear()} NEXUS ENGINE. جميع الحقوق محفوظة.</p>
       </footer>
 
-      {openLegal && (
-        <BaseModal
-          title={LEGAL_META[openLegal].title}
-          icon={<FileText className="w-5 h-5 text-[#D4AF37]" />}
-          onClose={() => setOpenLegal(null)}
-        >
-          {LEGAL_META[openLegal].content}
-        </BaseModal>
+      {/* ================= MODALS (Interactive Popups) ================= */}
+      {activeModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#101827] border border-[#D4AF37]/40 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setActiveModal(null)}
+              className="absolute top-4 left-4 text-gray-400 hover:text-white text-xl font-bold bg-gray-800 w-8 h-8 rounded-full flex items-center justify-center"
+            >
+              ✕
+            </button>
+
+            {/* Modal 1: Terms */}
+            {activeModal === 'terms' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-extrabold text-[#D4AF37] border-b border-[#D4AF37]/20 pb-2">
+                  وثيقة الترخيص والشراكة التشغيلية
+                </h3>
+                <div className="text-xs text-gray-300 leading-relaxed space-y-3 font-medium">
+                  <p>
+                    تحدد هذه الوثيقة إطار العمل والترخيص البرمجي لمنظومة <strong>Nexus Engine</strong>:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-400">
+                    <li><strong>توزيع العوائد:</strong> يستحق الشريك المرخص له نسبة 80% من صافي العوائد التشغيلية للنطاق المعتمد.</li>
+                    <li><strong>رسوم التشغيل:</strong> تحصل المنصة على 20% لتغطية الخوادم، الذكاء الاصطناعي، والصيانة الدورية.</li>
+                    <li><strong>الملكية الفكرية:</strong> تظل البرمجيات والبنية التحتية ملكاً حصرياً لـ Nexus Engine بينما يتمتع الشريك بحق الاستغلال التجاري للنطاق.</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Modal 2: Disclaimer */}
+            {activeModal === 'disclaimer' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-extrabold text-[#D4AF37] border-b border-[#D4AF37]/20 pb-2">
+                  إخلاء المسؤولية القانونية
+                </h3>
+                <div className="text-xs text-gray-300 leading-relaxed space-y-3 font-medium">
+                  <p>
+                    هذا البرنامج هو ترخيص تجاري وتشغيلي لأصول رقمية ومكونات برمجية، وليس عرضاً لأوراق مالية أو صندوق استثمار.
+                  </p>
+                  <p className="text-gray-400">
+                    النسب المذكورة هي توزيعات تشغيلية تقديرية وتخضع للشروط والأحكام الكاملة الموضحة في عقد الامتياز الرسمي بعد الاعتماد.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Modal 3: Privacy Policy */}
+            {activeModal === 'privacy' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-extrabold text-[#D4AF37] border-b border-[#D4AF37]/20 pb-2">
+                  سياسة الخصوصية وحماية البيانات
+                </h3>
+                <div className="text-xs text-gray-300 leading-relaxed space-y-3 font-medium">
+                  <p>
+                    تلتزم منصة Nexus Engine بحماية بيانات المستثمرين والشركاء التشغيليين بأعلى معايير التشفير والأمان.
+                  </p>
+                  <p className="text-gray-400">
+                    لن يتم مشاركة بريدك أو رقم هاتفك مع أي طرف ثالث، وتستخدم البيانات فقط لأغراض التقييم الفني والتواصل المباشر.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Modal 4: Generated Contract Draft */}
+            {activeModal === 'contract' && (
+              <div className="space-y-5">
+                <div className="bg-green-950/60 border border-green-500 rounded-xl p-3 text-center text-xs font-bold text-green-300">
+                  ✓ تم حفظ بياناتك وتوليد مسودة عقد المشاركة الرسمية بنجاح!
+                </div>
+
+                <div className="bg-[#0B0C10] border border-[#D4AF37]/30 rounded-xl p-4 text-xs space-y-3">
+                  <h4 className="font-extrabold text-[#D4AF37] text-center text-sm">
+                    اتفاقية مشاركة رقمية وتفعيل إقليمي
+                  </h4>
+                  <div className="space-y-1 text-gray-300 font-medium">
+                    <p><strong>الطرف الثاني (الشريك):</strong> {qualName || 'فادي أزهري'}</p>
+                    <p><strong>البريد الإلكتروني:</strong> {qualEmail}</p>
+                    <p><strong>الهاتف:</strong> {qualPhone}</p>
+                    <p><strong>النطاق الجغرافي:</strong> {qualRegion || 'الشرق الأوسط وشمال أفريقيا'}</p>
+                    <p><strong>القطاع:</strong> {qualSector}</p>
+                    <hr className="border-gray-800 my-2" />
+                    <p className="text-[#D4AF37] font-bold">
+                      يستحق الشريك 80% من صافي العوائد التشغيلية مقابل 20% لفرع المنصة للتشغيل والذكاء الاصطناعي.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-[#121926] p-4 rounded-xl border border-gray-800 space-y-2 text-center">
+                  <h5 className="font-bold text-white text-xs">تأمين الامتياز الإقليمي والتشغيل</h5>
+                  <p className="text-[11px] text-gray-400">
+                    أنت الآن على بعد خطوة من تملك نظامك المؤتمت بالكامل.
+                  </p>
+                  <div className="text-xl font-extrabold text-[#D4AF37]">
+                    رسوم التأسيس الربط: $600
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="w-full bg-[#D4AF37] hover:bg-[#b8972e] text-black font-extrabold py-3 rounded-xl transition text-xs"
+                >
+                  إغلاق ومتابعة الاعتماد عبر البريد
+                </button>
+              </div>
+            )}
+
+            <div className="text-center pt-2">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="text-xs text-gray-400 hover:text-white underline"
+              >
+                إغلاق النافذة
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
+
     </div>
   );
 }
