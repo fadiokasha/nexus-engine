@@ -164,7 +164,7 @@ export default function HomePage() {
 
           <div className="bg-[#101827] border border-[#D4AF37]/30 rounded-xl p-4 max-w-2xl mx-auto shadow-xl">
             <p className="text-xs md:text-sm font-bold text-gray-200">
-              ⚙️ هيكل توزيع العوائد: يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] text-base font-extrabold">80%</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] text-base font-extrabold">20%</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
+               هيكل توزيع العوائد: يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] text-base font-extrabold">80%</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] text-base font-extrabold">20%</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
             </p>
           </div>
         </section>
