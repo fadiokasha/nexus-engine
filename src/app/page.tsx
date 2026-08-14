@@ -1,600 +1,457 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { ShieldCheck, Zap, Lock, CheckCircle2, X, Download, FileText } from "lucide-react";
 
-export default function Home() {
-  // حالات النوافذ المنبثقة
-  const [isPath1Open, setIsPath1Open] = useState(false);
-  const [isPath2Open, setIsPath2Open] = useState(false);
-  const [legalModal, setLegalModal] = useState<string | null>(null);
+/* ------------------------------------------------------------------ */
+/*  Modal: عرض التقرير الفني بعد نجاح نموذج تحميل التقرير              */
+/* ------------------------------------------------------------------ */
 
-  // حالات نموذج المسار الأول (توليد العقد والتفعيل)
+interface ReportModalProps {
+  requestId: string;
+  reportUrl: string;
+  onClose: () => void;
+}
+
+function ReportModal({ requestId, reportUrl, onClose }: ReportModalProps) {
+  // إغلاق بمفتاح Escape
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-modal-title"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#1B222C] border border-[#D4AF37]/30 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4AF37]/20">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#D4AF37]" />
+            <h2 id="report-modal-title" className="font-bold text-white">
+              التقرير الفني
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="text-gray-400 hover:text-white transition-colors p-1"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body: معاينة PDF */}
+        {/*
+          ملاحظات مهمة بخصوص "الصفحة البيضاء الإضافية":
+          1. #toolbar=0&navpanes=0&view=FitH يوقف شريط أدوات وقائمة الصفحات
+             الجانبية لمتصفح Chrome/Edge PDF viewer، اللي أحيانًا تُظهر
+             مساحة بيضاء زايدة أو thumbnail لصفحة فاضية بجنب المحتوى.
+          2. لو "الصفحة البيضاء" موجودة داخل ملف الـ PDF نفسه (صفحة أخيرة
+             فاضية فعليًا)، هذا مو مشكلة عرض — لازم تفتح الملف الأصلي
+             وتتأكد من عدد الصفحات الحقيقي وتصلّحه من مصدره (Word/InDesign/
+             أداة التصدير)، لأن الـ iframe يعرض الملف كما هو بالضبط.
+          3. Firefox يتجاهل بعض هذي الباراميترات (viewer مختلف) — لهذا
+             حطينا key={reportUrl} تحت عشان يعيد تحميل iframe نظيف بدل ما
+             يحتفظ بحالة viewer قديمة لو المستخدم فتح أكثر من تقرير بنفس الجلسة.
+        */}
+        <div className="flex-1 overflow-hidden bg-white">
+          <iframe
+            key={reportUrl}
+            src={`${reportUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+            title="التقرير الفني"
+            className="w-full h-full min-h-[65vh] border-0 block"
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-[#D4AF37]/20">
+          <span className="text-xs text-gray-500 font-mono">رقم الطلب: {requestId}</span>
+          <a
+            href={reportUrl}
+            download
+            className="flex items-center gap-2 bg-[#D4AF37] hover:bg-[#E5C158] text-black font-bold text-sm px-5 py-2.5 rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            تحميل الملف
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  نموذج تحميل التقرير الفني (Lead Magnet)                            */
+/* ------------------------------------------------------------------ */
+
+function ReportRequestForm() {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [modalData, setModalData] = useState<{ requestId: string; reportUrl: string } | null>(null);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setStatus("submitting");
+      setErrorMsg("");
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fullName, email }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setStatus("error");
+          setErrorMsg(data.error ?? "تعذر إرسال الطلب");
+          return;
+        }
+
+        setStatus("idle");
+        setModalData({ requestId: data.requestId, reportUrl: data.reportUrl ?? "/technical-report.pdf" });
+      } catch {
+        setStatus("error");
+        setErrorMsg("تعذر الاتصال بالسيرفر، تأكد من اتصالك وحاول مرة ثانية");
+      }
+    },
+    [fullName, email]
+  );
+
+  return (
+    <>
+      <div className="bg-[#1B222C] border border-[#D4AF37]/20 rounded-2xl p-6 md:p-8">
+        <div className="flex items-center gap-2 mb-4">
+          <FileText className="w-5 h-5 text-[#D4AF37]" />
+          <h3 className="font-bold text-lg">حمّل التقرير الفني</h3>
+        </div>
+        <p className="text-gray-400 text-sm mb-6">
+          نظرة تقنية عامة على منصة Nexus Engine. هذا تحميل معلوماتي فقط ولا يشكّل تسجيلاً أو طلب شراكة.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {status === "error" && (
+            <div className="bg-red-500/10 border border-red-500/40 text-red-300 text-sm rounded-lg px-4 py-3">
+              {errorMsg}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">الاسم الكامل</label>
+            <input
+              type="text"
+              required
+              minLength={2}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">البريد الإلكتروني</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={status === "submitting"}
+            className="w-full flex items-center justify-center gap-2 bg-transparent border border-[#D4AF37] hover:bg-[#D4AF37]/10 disabled:opacity-50 text-[#D4AF37] font-bold py-3 rounded-lg transition-colors"
+          >
+            {status === "submitting" ? (
+              "جاري التحضير..."
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                عرض وتحميل التقرير
+              </>
+            )}
+          </button>
+        </form>
+      </div>
+
+      {modalData && (
+        <ReportModal
+          requestId={modalData.requestId}
+          reportUrl={modalData.reportUrl}
+          onClose={() => setModalData(null)}
+        />
+      )}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  نموذج طلب الشراكة الأصلي (مسار منفصل عبر /api/vetting)             */
+/* ------------------------------------------------------------------ */
+
+function VettingForm() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    passportNumber: "",
-    region: "الشرق الأوسط وشمال أفريقيا",
-    selectedSectors: [] as string[],
-    passportFile: null as File | null,
+    sector: "real-estate",
+    region: "",
+    capital: "50k-100k",
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // حالات نموذج المسار الثاني
-  const [path2Data, setPath2Data] = useState({ name: "", email: "", phone: "" });
-  const [path2Submitted, setPath2Submitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [units, setUnits] = useState<{ total: number; available: number } | null>(null);
 
-          // التعامل مع اختطاعات
-  const handleSectorChange = (sector: string) => {
-    if (formData.selectedSectors.includes(sector)) {
-      setFormData({
-        ...formData,
-        selectedSectors: formData.selectedSectors.filter((s) => s !== sector),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        selectedSectors: [...formData.selectedSectors, sector],
-      });
-    }
-  };
+  useEffect(() => {
+    fetch("/api/units")
+      .then((res) => res.json())
+      .then(setUnits)
+      .catch(() => setUnits(null));
+  }, []);
 
-  // إرسال البيانات إلى الـ API وخزن الجواز
-const handlePath1Submit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (formData.selectedSectors.length === 0) {
-    alert("يرجى اختيار قطاع تشغيلي واحد على الأقل");
-    return;
-  }
-
-  if (!formData.passportFile) {
-    alert("يرجى رفع صورة جواز السفر");
-    return;
-  }
-
-  setIsSubmitting(true);
-  alert("تم إرسال بيانات العقد وتأكيد الطلب بنجاح. جاري إعداد صفحة الدفع الإلكتروني...");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("submitting");
+    setErrorMsg("");
 
     try {
-      const dataToSend = new FormData();
-      dataToSend.append("fullName", formData.fullName);
-      dataToSend.append("email", formData.email);
-      dataToSend.append("passportNumber", formData.passportNumber);
-      dataToSend.append("region", formData.region);
-      dataToSend.append("selectedSectors", JSON.stringify(formData.selectedSectors));
-      dataToSend.append("passportFile", formData.passportFile);
-
-      const res = await fetch("/api/register", {
+      const res = await fetch("/api/vetting", {
         method: "POST",
-        body: dataToSend,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
-      const result = await res.json();
+      const data = await res.json();
 
-      if (result.success) {
-        setIsSubmitted(true);
+      if (res.ok) {
+        setStatus("submitted");
       } else {
-        alert(result.error || "حدث خطأ أثناء حفظ البيانات.");
+        setStatus("error");
+        setErrorMsg(data.error ?? "حصل خطأ غير متوقع");
       }
-    } catch (err) {
-      alert("تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً.");
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      setStatus("error");
+      setErrorMsg("تعذر الاتصال بالسيرفر، تأكد من اتصالك وحاول مرة ثانية");
     }
   };
 
-  const handlePath2Submit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  // 1. فتح/تحميل التقرير الفني والملف التقديمي مباشرة في تبويب جديد
-  window.open('/technical-report.pdf', '_blank');
-
-  // 2. إرسال البريد الإلكتروني التلقائي فوراً عبر API المباشر لـ EmailJS
-  try {
-    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        service_id: 'YOUR_SERVICE_ID',   // سيتغير مستقبلاً
-        template_id: 'YOUR_TEMPLATE_ID',  // سيتغير مستقبلاً
-        user_id: 'YOUR_PUBLIC_KEY',       // سيتغير مستقبلاً
-        template_params: {
-          user_name: formData.fullName || "عميل جديد",
-          user_email: formData.email || "",
-          user_phone: formData.phone || "",
-        },
-      }),
-    });
-    alert("تم فتح التقرير للتحميل المباشر، وأُرسلت نسخة رسمية إلى بريدك الإلكتروني.");
-  } catch (error) {
-    console.error("خطأ في إرسال البريد الإلكتروني:", error);
-  }
-};
-
   return (
-    <div className="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950" dir="rtl">
-      
-      {/* Header */}
-      <header className="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-black tracking-wider text-amber-400">
-              NEXUS <span className="text-slate-100">ENGINE</span>
-            </span>
+    <div className="bg-[#1B222C] border border-[#D4AF37]/30 p-8 rounded-2xl shadow-xl">
+      {status !== "submitted" ? (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <h3 className="text-xl font-bold text-[#D4AF37] mb-4">تقديم طلب تقييم النطاق الجغرافي</h3>
+
+          {status === "error" && (
+            <div className="bg-red-500/10 border border-red-500/40 text-red-300 text-sm rounded-lg px-4 py-3">
+              {errorMsg}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">الاسم الكامل</label>
+            <input
+              type="text"
+              required
+              value={formData.fullName}
+              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
+            />
           </div>
-          <div className="hidden md:flex items-center gap-2 border border-amber-400/30 bg-amber-400/10 px-4 py-1.5 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span className="text-xs font-semibold text-amber-400 tracking-wide">
-              المقاعد المتاحة: 15 مقعداً استراتيجياً
-            </span>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">البريد الإلكتروني الرسمي</label>
+            <input
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">القطاع المستهدف</label>
+            <select
+              value={formData.sector}
+              onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
+            >
+              <option value="real-estate">العقارات الرقمية</option>
+              <option value="e-commerce">التجارة الإلكترونية</option>
+              <option value="consulting">الخدمات الاستشارية</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">النطاق الجغرافي المطلوب</label>
+            <input
+              type="text"
+              required
+              placeholder="المدينة / الدولة"
+              value={formData.region}
+              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+              className="w-full bg-[#0B0C10] border border-[#D4AF37]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+
+          <label className="flex items-start gap-2 text-xs text-gray-400 pt-2">
+            <input type="checkbox" required className="mt-0.5" />
+            أقر بأنني اطّلعت على{" "}
+            <Link href="/terms" className="text-[#D4AF37] underline">
+              وثيقة الترخيص
+            </Link>{" "}
+            و{" "}
+            <Link href="/disclaimer" className="text-[#D4AF37] underline">
+              إخلاء المسؤولية
+            </Link>{" "}
+            وأن تقديم هذا الطلب لا يعني قبولاً مضمونًا.
+          </label>
+
+          <button
+            type="submit"
+            disabled={status === "submitting" || (units !== null && units.available === 0)}
+            className="w-full bg-[#D4AF37] hover:bg-[#E5C158] disabled:opacity-50 text-black font-bold py-3.5 rounded-lg transition-all mt-4"
+          >
+            {status === "submitting" ? "جاري إرسال الطلب..." : "إرسال الطلب للمراجعة"}
+          </button>
+
+          {units && (
+            <p className="text-center text-xs text-gray-500">
+              {units.available > 0 ? `${units.available} وحدة متاحة من أصل ${units.total}` : "لا توجد وحدات متاحة حاليًا"}
+            </p>
+          )}
+        </form>
+      ) : (
+        <div className="text-center py-6 space-y-4">
+          <CheckCircle2 className="w-12 h-12 text-[#D4AF37] mx-auto" />
+          <h4 className="text-xl font-bold">تم استلام طلبك بنجاح</h4>
+          <p className="text-gray-400 text-sm">
+            سيقوم فريق المراجعة بالتواصل معك عبر البريد الإلكتروني (
+            <span className="text-white">{formData.email}</span>) بعد دراسة النطاق الجغرافي المتاح. تقديم الطلب
+            لا يشكّل موافقة أو قبولاً.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  الصفحة الرئيسية                                                    */
+/* ------------------------------------------------------------------ */
+
+export default function NexusEngineLanding() {
+  return (
+    <div className="min-h-screen bg-[#0B0C10] text-white font-sans selection:bg-[#D4AF37] selection:text-black">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0B0C10]/80 border-b border-[#D4AF37]/20 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="w-10 h-10 border-2 border-[#D4AF37] rotate-45 flex items-center justify-center bg-[#1B222C]">
+              <span className="text-[#D4AF37] -rotate-45 font-black text-xl">N</span>
+            </div>
+            <div>
+              <span className="text-xl font-black tracking-wider text-white block">
+                NEXUS <span className="text-[#D4AF37]">ENGINE</span>
+              </span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest block font-light">
+                برنامج ترخيص وشراكة تشغيل رقمي
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-24 px-6 overflow-hidden border-b border-slate-800/50">
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-400/40 bg-slate-900/80 text-amber-400 text-sm font-bold mb-8 shadow-lg shadow-amber-400/5">
-            تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black text-slate-100 leading-tight mb-6">
-            NEXUS ENGINE — <span className="text-transparent bg-clip-text bg-gradient-to-l from-amber-500 via-amber-300 to-amber-500">منظومة إدارة الأصول الرقمية المؤتمتة</span>
-          </h1>
-          <p className="text-lg md:text-xl text-slate-300 font-medium max-w-3xl mx-auto leading-relaxed mb-10">
-            امتلك امتياز تشغيل النطاق الإقليمي كـ "مالك استراتيجي للأصل الرقمي". أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button 
-              onClick={() => setIsPath1Open(true)}
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-200 text-slate-950 font-bold rounded-xl shadow-xl shadow-amber-400/10 hover:opacity-95 transition-all text-center cursor-pointer"
-            >
-              حجز النطاق وتوليد عقد المشاركة
-            </button>
-            <button 
-              onClick={() => setIsPath2Open(true)}
-              className="w-full sm:w-auto px-8 py-4 bg-slate-900 border border-slate-700 hover:border-amber-400/50 text-slate-200 font-semibold rounded-xl transition-all text-center cursor-pointer"
-            >
-              طلب التقرير الفني والملف التقديمي
-            </button>
-          </div>
+      <section className="pt-16 pb-12 px-6 text-center max-w-4xl mx-auto">
+        <h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">
+          منظومة{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] via-yellow-100 to-[#D4AF37]">
+            الترخيص الرقمي
+          </span>{" "}
+          المدعومة بالذكاء الاصطناعي
+        </h1>
+        <p className="text-gray-400 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
+          ترخيص تشغيل لمنصتنا التقنية، بهيكل توزيع مالي مبني على نسبة 92% لصاحب الترخيص و8% رسوم تشغيل للمنصة —
+          حسب التفاصيل الكاملة في اتفاقية الترخيص.
+        </p>
+        <p className="text-xs text-gray-500 max-w-xl mx-auto">
+          هذا برنامج ترخيص تجاري وليس عرض أوراق مالية أو صندوق استثماري. النسب المذكورة تقديرية وتخضع للشروط
+          الكاملة في{" "}
+          <Link href="/terms" className="text-[#D4AF37] underline">
+            وثيقة الترخيص
+          </Link>{" "}
+          و{" "}
+          <Link href="/disclaimer" className="text-[#D4AF37] underline">
+            إخلاء المسؤولية
+          </Link>
+          .
+        </p>
+      </section>
+
+      <section className="py-12 px-6 max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+        <div className="bg-[#1B222C] border border-[#D4AF37]/20 p-6 rounded-2xl">
+          <Zap className="w-6 h-6 text-[#D4AF37] mb-4" />
+          <h3 className="font-bold mb-2">أتمتة تشغيلية</h3>
+          <p className="text-gray-400 text-sm">أدوات مؤتمتة لإدارة العمليات اليومية للمرخّص له.</p>
+        </div>
+        <div className="bg-[#1B222C] border border-[#D4AF37]/20 p-6 rounded-2xl">
+          <ShieldCheck className="w-6 h-6 text-[#D4AF37] mb-4" />
+          <h3 className="font-bold mb-2">توزيع مالي موثّق</h3>
+          <p className="text-gray-400 text-sm">تحويلات مسجّلة وفق دورة محددة في العقد، بعد الرسوم والضريبة.</p>
+        </div>
+        <div className="bg-[#1B222C] border border-[#D4AF37]/20 p-6 rounded-2xl">
+          <Lock className="w-6 h-6 text-[#D4AF37] mb-4" />
+          <h3 className="font-bold mb-2">حصرية نطاق عند التوفر</h3>
+          <p className="text-gray-400 text-sm">حصرية جغرافية حسب توفر النطاق الفعلي، موثقة بالعقد.</p>
         </div>
       </section>
 
-      {/* Sectors Showcase */}
-      <section className="py-20 px-6 max-w-7xl mx-auto border-b border-slate-800/60">
-        <div className="text-center mb-16">
-          <h2 className="text-2xl md:text-4xl font-bold text-slate-100 mb-4">
-            القطاعات الاستراتيجية المتاحة للتفعيل الإقليمي
-          </h2>
-          <p className="text-slate-400 max-w-2xl mx-auto text-base leading-relaxed">
-            أنظمة ومكونات برمجية مؤتمتة جاهزة للعمل داخل نطاقك الجغرافي عبر خوارزميات الذكاء الاصطناعي.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="p-8 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="text-3xl mb-4">🏢</div>
-              <h3 className="text-xl font-bold text-slate-100 mb-3">العقارات الرقمية والوساطة</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                منظومة مؤتمتة لإدارة وعرض المشاريع العقارية والوساطة السحابية والربط بين المطورين والمستثمرين تلقائياً.
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-amber-400 bg-amber-400/10 px-3 py-1.5 rounded-lg w-fit">Module 01</span>
-          </div>
-
-          <div className="p-8 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="text-3xl mb-4">📦</div>
-              <h3 className="text-xl font-bold text-slate-100 mb-3">التجارة الإلكترونية والأنظمة اللوجستية</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                بنية تحتية لتشغيل شبكات التجارة السحابية، أتمتة الطلبات، وتتبع الشحنات والربط اللوجستي الذكي.
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-amber-400 bg-amber-400/10 px-3 py-1.5 rounded-lg w-fit">Module 02</span>
-          </div>
-
-          <div className="p-8 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="text-3xl mb-4">⚡</div>
-              <h3 className="text-xl font-bold text-slate-100 mb-3">الخدمات التقنية والحلول الذكية للمؤسسات</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                تزويد القطاعات والمؤسسات بحلول الأتمتة، خوارزميات خدمة العملاء الذكية، وأنظمة المبيعات التلقائية.
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-amber-400 bg-amber-400/10 px-3 py-1.5 rounded-lg w-fit">Module 03</span>
-          </div>
-        </div>
+      {/* نموذج تحميل التقرير الفني - Lead Magnet مستقل */}
+      <section className="py-12 px-6 max-w-2xl mx-auto">
+        <ReportRequestForm />
       </section>
 
-      {/* Model & Profit Split */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-2xl md:text-4xl font-bold text-slate-100 mb-4">
-            شراكة عادلة وتوزيع عوائد تلقائي
-          </h2>
-          <p className="text-slate-400 max-w-2xl mx-auto text-base leading-relaxed">
-            نموذج مشاركة أرباح متوافق مع أحكام المعاملات المالية الإسلامية (عقد مضاربة/مشاركة)، حيث ترتبط أرباحك بالنشاط التشغيلي الفعلي للنطاق.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-400/40 transition-all">
-            <div className="text-4xl font-black text-amber-400 mb-2">80%</div>
-            <h3 className="text-xl font-bold text-slate-100 mb-3">حصة الشريك التشغيلي (مالك الأصل)</h3>
-            <p className="text-slate-400 leading-relaxed text-sm">
-              أرباح تشغيلية مباشرة ومتغيرة تُحول أوتوماتيكياً إلى حساب الشريك بناءً على حجم الحركة المعتمدة في إقليمه.
-            </p>
-          </div>
-          <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-400/40 transition-all">
-            <div className="text-4xl font-black text-amber-400 mb-2">20%</div>
-            <h3 className="text-xl font-bold text-slate-100 mb-3">حصة المنصة (إدارة وتطوير المنظومة)</h3>
-            <p className="text-slate-400 leading-relaxed text-sm">
-              تغطي التحديثات البرمجية المستمرة، صيانة السيرفرات السحابية، وخوارزميات الذكاء الاصطناعي دون أي تكاليف خفية.
-            </p>
-          </div>
-        </div>
+      {/* نموذج طلب الشراكة - مسار مستقل بنظامه الاعتمادي عبر /admin */}
+      <section className="py-12 px-6 max-w-2xl mx-auto" id="vetting-section">
+        <VettingForm />
       </section>
 
-      {/* Regional Alliance & Partner Role (تم تصحيح النجمتين هنا) */}
-      <section className="py-20 px-6 bg-slate-900/30 border-y border-slate-800/60">
-        <div className="max-w-5xl mx-auto bg-gradient-to-b from-slate-900 to-slate-950 p-10 md:p-14 rounded-3xl border border-amber-400/20 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl"></div>
-          <h2 className="text-2xl md:text-3xl font-black text-amber-400 mb-6">
-            دورك كـ "مالك استراتيجي" — أمان وحرية زمنية
-          </h2>
-          <p className="text-slate-200 text-base md:text-lg leading-relaxed font-normal">
-            أنت لا تعمل كموظف تقني ولا تتولى مهام الكتابة أو البرمجة. المنظومة مُصممة لتمنحك{" "}
-            <strong className="font-bold text-amber-400">الرافعة الرقمية (Digital Leverage)</strong>
-            ؛ حيث تتولى الخوارزميات الذكية جميع العمليات اليومية والصيانة الفنية، بينما يتركز دورك في{" "}
-            <strong className="font-bold text-amber-400">
-              التوجيه الاستراتيجي، متابعة لوحة الأداء (Dashboard)، وتحصيل العوائد
-            </strong>
-            .
-          </p>
-        </div>
-      </section>
-
-      {/* Founder's Vision */}
-      <section className="py-20 px-6 max-w-5xl mx-auto">
-        <div className="border-r-4 border-amber-400 pr-8 py-2">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-100 mb-6">رؤية المالك ومؤسس المنصة</h2>
-          <blockquote className="text-slate-300 text-lg leading-relaxed space-y-4 font-normal">
-            <p>
-              «ابتكرنا NEXUS ENGINE لتكون حلولاً سيادية تلغي الأعباء التشغيلية وتتيح إدارة الأصول الرقمية بأعلى مستويات الاقتدار. حصر المنظومة في 15 مقعداً إقليمياً يضمن التركيز الاستثماري العالي، والحفاظ على القيمة السيادية والتنظيمية لكل نطاق جغرافي.»
-            </p>
-          </blockquote>
-        </div>
-      </section>
-
-      {/* CTA Routes */}
-      <section id="booking" className="py-20 px-6 bg-slate-900/50 border-t border-slate-800">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-100 mb-4">مسارات الانضمام والاعتماد</h2>
-            <p className="text-slate-400">اختر المسار المناسب للبدء في إجراءات الاعتماد الإقليمي</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* المسار الأول */}
-            <div className="p-8 rounded-2xl bg-slate-900 border-2 border-amber-400/60 flex flex-col justify-between shadow-xl shadow-amber-400/5">
-              <div>
-                <div className="inline-block px-3 py-1 bg-amber-400/20 text-amber-400 text-xs font-bold rounded-md mb-4">المسار الأول — التنفيذ المباشر</div>
-                <h3 className="text-2xl font-bold text-slate-100 mb-4">حجز النطاق وإصدار عقد المشاركة</h3>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6">
-                  إدخال البيانات الرسمية، اختيار القطاعات المطلوب تفعيلها، وتوليد عقد المشاركة الرقمي الموثق فوراً.
-                </p>
-              </div>
-              <button 
-                onClick={() => setIsPath1Open(true)}
-                className="w-full py-4 bg-amber-400 text-slate-950 font-bold rounded-xl hover:bg-amber-300 transition-all cursor-pointer"
-              >
-                تأكيد الحجز وتوليد العقد
-              </button>
-            </div>
-
-            {/* المسار الثاني */}
-            <div id="preview" className="p-8 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-              <div>
-                <div className="inline-block px-3 py-1 bg-slate-800 text-slate-400 text-xs font-bold rounded-md mb-4">المسار الثاني — الاستكشاف</div>
-                <h3 className="text-2xl font-bold text-slate-100 mb-4">طلب التقرير الفني والملف التقديمي</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                  تقديم طلب رسمي لاستلام التقرير الفني الشامل واضطلاع على معايير الأتمتة والجاهزية قبل الحجز.
-                </p>
-              </div>
-              <button 
-                onClick={() => setIsPath2Open(true)}
-                className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all cursor-pointer"
-              >
-                طلب التقرير الفني
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer & Legal Links */}
-      <footer className="py-12 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p>© NEXUS ENGINE. جميع الحقوق محفوظة — تحت الحوكمة والإشراف المباشر لمؤسس المنصة.</p>
-          <div className="flex items-center gap-6">
-            <button onClick={() => setLegalModal("license")} className="hover:text-amber-400 transition-colors underline cursor-pointer">
-              وثيقة الترخيص والمشاركة
-            </button>
-            <span className="text-slate-700">•</span>
-            <button onClick={() => setLegalModal("disclaimer")} className="hover:text-amber-400 transition-colors underline cursor-pointer">
-              إخلاء المسؤولية
-            </button>
-            <span className="text-slate-700">•</span>
-            <button onClick={() => setLegalModal("privacy")} className="hover:text-amber-400 transition-colors underline cursor-pointer">
-              سياسة الخصوصية
-            </button>
-          </div>
-        </div>
+      <footer className="border-t border-[#D4AF37]/10 py-6 text-center text-xs text-gray-500 space-y-2 px-6">
+        <p>© 2026 Nexus Engine. جميع الحقوق محفوظة.</p>
+        <p className="flex justify-center gap-4 flex-wrap">
+          <Link href="/privacy" className="underline hover:text-gray-300">
+            سياسة الخصوصية
+          </Link>
+          <Link href="/terms" className="underline hover:text-gray-300">
+            وثيقة الترخيص
+          </Link>
+          <Link href="/disclaimer" className="underline hover:text-gray-300">
+            إخلاء المسؤولية
+          </Link>
+        </p>
       </footer>
-
-      {/* ==================== Modal المسار الأول (حجز النطاق والعقد والإنهاء) ==================== */}
-      {isPath1Open && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-amber-400/30 w-full max-w-2xl rounded-2xl p-6 md:p-8 relative shadow-2xl my-8">
-            <button 
-              onClick={() => { setIsPath1Open(false); setIsSubmitted(false); }}
-              className="absolute top-4 left-4 text-slate-400 hover:text-slate-100 text-xl font-bold p-2"
-            >
-              ✕
-            </button>
-
-            {!isSubmitted ? (
-              <>
-                <h3 className="text-2xl font-bold text-amber-400 mb-2">حجز النطاق وإصدار عقد المشاركة</h3>
-                <p className="text-slate-300 text-xs mb-6">
-                  أدخل بياناتك الرسمية واختر القطاعات المراد تفعيلها لتوليد عقد اتفاقية المشاركة الموثق.
-                </p>
-                {/* حقل النطاق الجغرافي / الإقليمي */}
-<div className="mb-4 text-right">
-  <label className="block text-xs font-semibold text-slate-300 mb-1">
-    النطاق الجغرافي / الإقليمي المستهدف
-  </label>
-  <select
-    name="region"
-    required
-    className="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm text-right focus:outline-none focus:border-amber-400"
-  >
-    <option value="">اختر النطاق الجغرافي والإقليمي...</option>
-    <option value="GCC">دول مجلس التعاون الخليجي (GCC)</option>
-    <option value="MENA">الشرق الأوسط وشمال إفريقيا (MENA)</option>
-    <option value="UAE">دولة الإمارات العربية المتحدة</option>
-    <option value="KSA">المملكة العربية السعودية</option>
-    <option value="EGY">جمهورية مصر العربية</option>
-    <option value="GLOBAL">نطاق عالمي / دولي (Global)</option>
-  </select>
-</div>
-
-                <form onSubmit={handlePath1Submit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">الاسم الكامل (مطابق لجواز السفر)</label>
-                    <input type="text" required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-400 text-sm"/>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">البريد الإلكتروني</label>
-                      <input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-400 text-sm"/>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">رقم جواز السفر</label>
-                      <input type="text" required value={formData.passportNumber} onChange={(e) => setFormData({...formData, passportNumber: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-400 text-sm"/>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">صورة جواز السفر</label>
-                    <input type="file" required onChange={(e) => setFormData({...formData, passportFile: e.target.files ? e.target.files[0] : null})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-300 text-sm"/>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-amber-400 mb-2">القطاعات المراد تفعيلها:</label>
-                    <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      {["العقارات الرقمية والوساطة", "التجارة الإلكترونية والأنظمة اللوجستية", "الخدمات التقنية والحلول الذكية للمؤسسات"].map((sector) => (
-                        <label key={sector} className="flex items-center gap-3 cursor-pointer text-xs text-slate-200 hover:text-amber-400">
-                          <input type="checkbox" checked={formData.selectedSectors.includes(sector)} onChange={() => handleSectorChange(sector)} className="w-4 h-4 accent-amber-400 rounded"/>
-                          <span>{sector}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full py-4 bg-amber-400 text-slate-950 font-bold rounded-xl hover:bg-amber-300 transition-all text-sm mt-4 cursor-pointer disabled:opacity-50"
-                  >
-                    {isSubmitting ? "جاري التوليد وحفظ البيانات..." : "توليد عقد المشاركة الرقمي"}
-                  </button>
-                </form>
-              </>
-            ) : (
-              /* شاشة المعاينة والدفع */
-              <div className="space-y-6">
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-semibold text-center">
-                  ✓ تم حفظ بياناتك وتوليد مسودة عقد المشاركة الرسمية بنجاح!
-                </div>
-
-                <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 text-xs space-y-4 max-h-60 overflow-y-auto leading-relaxed">
-                  <h4 className="font-bold text-amber-400 text-center">اتفاقية مشاركة رقمية وتفعيل إقليمي</h4>
-                  <p>الطرف الثاني: {formData.fullName} | النطاق: {formData.region}</p>
-                  <p>القطاعات المفعلة: {formData.selectedSectors.join(" ، ")}</p>
-                  <p className="text-slate-400 border-t border-slate-800 pt-2">
-                    يستحق الشريك 80% من صافي العوائد التشغيلية مقابل تفرغ المنصة للتشغيل والذكاء الاصطناعي.
-                  </p>
-                </div>
-
-                {/* قسم الدفع بالكامل مع طرائق الدفع والتشفير */}
-                <div className="bg-slate-950 p-6 rounded-xl border border-amber-400/20 space-y-4">
-                  <h4 className="text-lg font-bold text-slate-100">تأمين الامتياز الإقليمي والتشغيل</h4>
-                  <p className="text-slate-400 text-xs leading-relaxed">
-                    أنت الآن على بعد خطوة من تملك نظامك الرقمي المؤتمت بالكامل. لتفعيل امتيازك الإقليمي (من أصل 15 مقعداً متاحاً فقط)، نقوم بتخصيص الموارد التقنية اللازمة وبدء تشغيل محرك الذكاء الاصطناعي الخاص بك.
-                  </p>
-                  <div className="flex items-center justify-between py-2 border-y border-slate-800">
-                    <span className="text-sm text-slate-300">رسوم التأسيس والربط:</span>
-                    <span className="text-2xl font-black text-amber-400">600$</span>
-                  </div>
-                  
-                  <button 
-                    onClick={() => alert("سيتم توجيهك الآن إلى بوابة الدفع الآمنة لإتمام رسوم التأسيس.")}
-                    className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-300 text-slate-950 font-bold rounded-xl text-sm transition-all text-center cursor-pointer shadow-lg hover:shadow-amber-400/20"
-                  >
-                    امتلاك المقعد وتفعيل النظام
-                  </button>
-
-                  {/* طرائق الدفع ومعايير التشفير */}
-                  <div className="mt-4 flex flex-col items-center gap-3">
-                    <div className="flex flex-wrap justify-center items-center gap-3 opacity-70">
-                      <span className="text-[10px] font-semibold text-slate-500 uppercase">يُقبل الدفع عبر:</span>
-                      <div className="flex gap-2">
-                        <span className="bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700">VISA</span>
-                        <span className="bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700">MADA</span>
-                        <div className="mt-4 p-3 bg-slate-900 border border-slate-700 rounded-lg text-center">
-  <p className="text-sm font-bold text-white mb-1">
-    💳 يقبل الدفع عبر: <span className="text-amber-400">MasterCard</span> — <span className="text-amber-400">mada</span> — <span className="text-amber-400">Visa</span>
-  </p>
-  <p className="text-xs text-slate-200 font-medium">
-    🔒 جميع العمليات مشفرة ومؤمنة بالكامل بأعلى معايير الأمان الرقمي
-  </p>
-</div>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-slate-600 text-center">
-                      جميع العمليات مشفرة بمعايير SSL العالمية لضمان أمان بياناتك.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ==================== Modal المسار الثاني ==================== */}
-      {isPath2Open && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 md:p-8 relative shadow-2xl">
-            <button 
-              onClick={() => { setIsPath2Open(false); setPath2Submitted(false); }}
-              className="absolute top-4 left-4 text-slate-400 hover:text-slate-100 text-xl font-bold p-2"
-            >
-              ✕
-            </button>
-
-            {!path2Submitted ? (
-              <>
-                <h3 className="text-2xl font-bold text-slate-100 mb-2">طلب التقرير الفني والملف التقديمي</h3>
-                <p className="text-slate-400 text-xs mb-6">
-                  أدخل بياناتك لاستلام التقرير التقني وملف أتمتة الأصول الرقمية.
-                </p>
-
-                <form onSubmit={handlePath2Submit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">الاسم الكريم</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={path2Data.name}
-                      onChange={(e) => setPath2Data({...path2Data, name: e.target.value})}
-                      placeholder="أدخل اسمك" 
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-400 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">البريد الإلكتروني</label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={path2Data.email}
-                      onChange={(e) => setPath2Data({...path2Data, email: e.target.value})}
-                      placeholder="name@domain.com" 
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-400 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">رقم الهاتف / الواتساب</label>
-                    <input 
-                      type="tel" 
-                      required 
-                      value={path2Data.phone}
-                      onChange={(e) => setPath2Data({...path2Data, phone: e.target.value})}
-                      placeholder="+966..." 
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-400 text-sm"
-                    />
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold rounded-xl transition-all text-sm mt-2 cursor-pointer"
-                  >
-                    إرسال وطلب التقرير الفني
-                  </button>
-                </form>
-              </>
-            ) : (
-              <div className="text-center py-8 space-y-4">
-                <div className="text-4xl">📄</div>
-                <h4 className="text-xl font-bold text-amber-400">تم استلام طلب التقرير الفني بنجاح</h4>
-                <p className="text-slate-300 text-xs max-w-sm mx-auto leading-relaxed">
-                  تم إرسال رابط تحميل الملف التقديمي والتقرير الفني لـ NEXUS ENGINE إلى بريدك الإلكتروني ({path2Data.email}).
-                </p>
-                <button 
-                  onClick={() => { setIsPath2Open(false); setPath2Submitted(false); }}
-                  className="px-6 py-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-700 transition-all cursor-pointer"
-                >
-                  إغلاق
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ==================== Modal الوثائق القانونية ==================== */}
-      {legalModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 md:p-8 relative shadow-2xl max-h-[80vh] overflow-y-auto">
-            <button 
-              onClick={() => setLegalModal(null)}
-              className="absolute top-4 left-4 text-slate-400 hover:text-slate-100 text-xl font-bold p-2"
-            >
-              ✕
-            </button>
-
-            {legalModal === "license" && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-amber-400">وثيقة الترخيص والمشاركة الموحدة</h3>
-                <p className="text-slate-300 text-xs leading-relaxed">
-                  تحدد هذه الوثيقة الأطر التنظيمية لاستخدام وتفعيل منظومة NEXUS ENGINE. تمنح المنصة تراخيص تشغيل حصري لـ 15 مرخَّصاً إقليمياً فقط. تخضع الاتفاقية لنظام مشاركة الأرباح المتغيرة (80% للشريك التشغيلي و 20% للمنصة) مع التزام المنصة بالصيانة والتشغيل الذكي الكامل.
-                </p>
-              </div>
-            )}
-
-            {legalModal === "disclaimer" && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-amber-400">إخلاء المسؤولية القانونية</h3>
-                <p className="text-slate-300 text-xs leading-relaxed">
-                  منظومة NEXUS ENGINE توفر أصولاً رقمية وبنية تحتية مؤتمتة بالذكاء الاصطناعي. الأرباح المحققة هي عوائد تشغيلية متغيرة تتبع حركة النشاط الفعلي في النطاق الجغرافي وليست فوائد ثابتة أو ضمانات مالية مطلقة.
-                </p>
-              </div>
-            )}
-
-            {legalModal === "privacy" && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-amber-400">سياسة الخصوصية وحماية البيانات</h3>
-                <p className="text-slate-300 text-xs leading-relaxed">
-                  نحن نلتزم بأعلى معايير التشفير والسرية لبيانات الجوازات والبيانات الشخصية للمرخص لهم. تُستخدم هذه البيانات حصرياً لتوثيق عقد اتفاقية المشاركة الرقمية وتحديد أسبقية المقعد الإقليمي.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
