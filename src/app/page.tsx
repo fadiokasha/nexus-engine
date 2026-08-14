@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Zap, Lock, CheckCircle, X } from 'lucide-react';
+import { Shield, Zap, Lock, CheckCircle, X, FileText } from 'lucide-react';
 
 export default function Home() {
   // حالات النماذج (Form States)
@@ -25,6 +25,29 @@ export default function Home() {
     pdfUrl?: string; 
     data?: any 
   } | null>(null);
+
+  // فتح نوافذ السياسات والوثائق
+  const openPolicyModal = (type: 'privacy' | 'disclaimer' | 'license') => {
+    if (type === 'privacy') {
+      setModal({
+        open: true,
+        title: 'سياسة الخصوصية - Nexus Engine',
+        message: 'نلتزم بشدة بحماية بياناتك الشخصية والتجارية. كافة البيانات المدخلة (الاسم، البريد الإلكتروني، رقم الجوال) يتم استخدامها حصرياً لأغراض التواصل والتأهيل الاستثماري، ولا يتم مشاركتها أو بيعها لأي طرف ثالث خارج إطار تفعيل التشغيل.',
+      });
+    } else if (type === 'disclaimer') {
+      setModal({
+        open: true,
+        title: 'إخلاء المسؤولية القانونية',
+        message: 'المعلومات والتقارير المقدمة في هذه المنصة هي لأغراض التقييم والتأهيل الاستثماري والتشغيلي. تقديم هذا الطلب لا يعني قبولاً مضموناً أو تعاقداً نهائياً، بل يخضع لعملية المراجعة الفنية والقانونية من قبل فريق Nexus Engine.',
+      });
+    } else if (type === 'license') {
+      setModal({
+        open: true,
+        title: 'وثيقة الترخيص والسيادة التشغيلية',
+        message: 'تنظم وثيقة الترخيص العلاقة الاستراتيجية بين الشريك والمنصة؛ حيث يحصل الشريك على حق تشغيل النطاق الجغرافي المعتمد بنسبة عوائد تشغيلية 80% للشريك مقابل 20% لرسوم تشغيل المنصة وأتمتة الذكاء الاصطناعي والدعم البرمجي.',
+      });
+    }
+  };
 
   // إرسال طلب التقرير الفني
   const handleReportSubmit = async (e: React.FormEvent) => {
@@ -130,7 +153,7 @@ export default function Home() {
           تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
         </div>
 
-        {/* العنوان الرئيسي (تم علاج الانكسار وترقية المظهر الذهبي) */}
+        {/* العنوان الرئيسي */}
         <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight text-white tracking-tight">
           منظومة إدارة الأصول الرقمية المؤتمتة —{' '}
           <span className="bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] bg-clip-text text-transparent whitespace-nowrap">
@@ -142,12 +165,12 @@ export default function Home() {
           امتلك امتياز تشغيل النطاق الإقليمي كـ "مالك استراتيجي للأصل الرقمي". أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
         </p>
 
-        {/* شريط توزيع العوائد (تم إزالة الترس الزائد) */}
+        {/* شريط توزيع العوائد */}
         <div className="bg-gradient-to-r from-white/[0.03] via-white/[0.06] to-white/[0.03] border border-[#D4AF37]/30 rounded-2xl p-4 text-xs md:text-sm text-gray-200 shadow-xl max-w-2xl mx-auto">
           <span className="text-[#D4AF37] font-bold">هيكل توزيع العوائد:</span> يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] font-bold">%80</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] font-bold">%20</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
         </div>
 
-        {/* شبكة البطاقات الثلاث (نمط الزجاج الملكي Glassmorphism) */}
+        {/* شبكة البطاقات الثلاث */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-right pt-4">
           <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
             <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
@@ -238,7 +261,7 @@ export default function Home() {
           </form>
         </div>
 
-        {/* النموذج الثاني: طلب التأهيل (تم تصحيح مسمى رقم الجوال وتعميق الفخامة) */}
+        {/* النموذج الثاني: طلب التأهيل */}
         <div className="bg-[#0f1420]/80 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right shadow-2xl max-w-2xl mx-auto relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -276,7 +299,6 @@ export default function Home() {
               />
             </div>
 
-            {/* تم الاعتماد: رقم الجوال الرسمي فقط */}
             <div>
               <label className="block text-xs font-bold text-gray-300 mb-1.5">رقم الجوال الرسمي</label>
               <input
@@ -323,7 +345,23 @@ export default function Home() {
                 className="mt-1 accent-[#D4AF37] cursor-pointer"
               />
               <label htmlFor="terms" className="text-[11px] text-gray-400 leading-relaxed cursor-pointer select-none">
-                أقر بأنني اطلعت ووافقت على <span className="text-[#D4AF37] underline">وثيقة الترخيص</span> و <span className="text-[#D4AF37] underline">إخلاء المسؤولية</span> وأن تقديم هذا الطلب لا يعني قبولاً مضموناً إلا بعد المراجعة.
+                أقر بأنني اطلعت ووافقت على{' '}
+                <button
+                  type="button"
+                  onClick={() => openPolicyModal('license')}
+                  className="text-[#D4AF37] underline hover:text-[#F3E5AB]"
+                >
+                  وثيقة الترخيص
+                </button>{' '}
+                و{' '}
+                <button
+                  type="button"
+                  onClick={() => openPolicyModal('disclaimer')}
+                  className="text-[#D4AF37] underline hover:text-[#F3E5AB]"
+                >
+                  إخلاء المسؤولية
+                </button>{' '}
+                وأن تقديم هذا الطلب لا يعني قبولاً مضموناً إلا بعد المراجعة.
               </label>
             </div>
 
@@ -337,7 +375,7 @@ export default function Home() {
           </form>
         </div>
 
-        {/* النافذة المنبثقة للنتائج (Modal) */}
+        {/* النافذة المنبثقة للنتائج والسياسات (Modal) */}
         {modal?.open && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
             <div className="bg-[#0f1420] border border-[#D4AF37]/50 rounded-2xl p-6 md:p-8 max-w-lg w-full text-right relative shadow-2xl space-y-4">
@@ -348,8 +386,8 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2 text-[#D4AF37] font-bold text-base">
-                <CheckCircle className="w-5 h-5" />
+              <div className="flex items-center gap-2 text-[#D4AF37] font-bold text-base border-b border-white/10 pb-3">
+                <FileText className="w-5 h-5" />
                 <span>{modal.title}</span>
               </div>
 
@@ -367,7 +405,9 @@ export default function Home() {
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-gray-300 leading-relaxed">{modal.message}</p>
+                <p className="text-xs text-gray-300 leading-relaxed font-light py-2">
+                  {modal.message}
+                </p>
               )}
 
               {modal.pdfUrl && (
@@ -390,14 +430,29 @@ export default function Home() {
           </div>
         )}
 
-        {/* الفوتر الملكي */}
+        {/* الفوتر الملكي التفاعلي */}
         <footer className="w-full mt-20 pt-8 pb-6 border-t border-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent text-center text-xs text-gray-400 space-y-4">
           <div className="flex justify-center items-center gap-6 text-gray-400 font-medium text-xs">
-            <a href="#" className="hover:text-[#D4AF37] transition-colors">سياسة الخصوصية</a>
+            <button
+              onClick={() => openPolicyModal('privacy')}
+              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              سياسة الخصوصية
+            </button>
             <span>•</span>
-            <a href="#" className="hover:text-[#D4AF37] transition-colors">إخلاء المسؤولية</a>
+            <button
+              onClick={() => openPolicyModal('disclaimer')}
+              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              إخلاء المسؤولية
+            </button>
             <span>•</span>
-            <a href="#" className="hover:text-[#D4AF37] transition-colors">وثيقة الترخيص</a>
+            <button
+              onClick={() => openPolicyModal('license')}
+              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              وثيقة الترخيص
+            </button>
           </div>
           <p className="text-gray-500 font-mono text-[11px]">© 2026 NEXUS ENGINE. جميع الحقوق محفوظة.</p>
         </footer>
