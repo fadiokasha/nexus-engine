@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-// الربط مع مفتاح Resend المكتوب في Vercel
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
@@ -9,9 +8,13 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { type, name, email, phone, sector, region } = body;
 
+    // جلب رابط الموقع الشغال حالياً تلقائياً لتفادي خطأ النطاق
+    const host = request.headers.get('host') || 'nexus-engine-v6.vercel.app';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
     // 1. طلب التقرير الفني
     if (type === 'report') {
-      // إرسال إيميل حقيقي للعميل يتضمن رابط التقرير
       await resend.emails.send({
         from: 'Nexus Engine <onboarding@resend.dev>',
         to: email,
@@ -21,9 +24,10 @@ export async function POST(request: Request) {
             <h2>مرحباً ${name}،</h2>
             <p>شكراً لاهتمامك بـ <strong>Nexus Engine</strong>.</p>
             <p>يمكنك تحميل التقرير الفني مباشرة عبر الرابط التالي:</p>
-            <p><a href="https://nexusengine.ai/technical-report.pdf" style="background: #D4AF37; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">تحميل التقرير الفني PDF</a></p>
+            <p><a href="${baseUrl}/technical-report.pdf" style="background: #D4AF37; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">تحميل التقرير الفني PDF</a></p>
             <br/>
-            <p style="font-size: 12px; color: #777;">للعودة إلى منصة Nexus Engine في أي وقت: https://nexusengine.ai</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="font-size: 12px; color: #777;">للعودة إلى منصة Nexus Engine في أي وقت: <a href="${baseUrl}">${baseUrl}</a></p>
           </div>
         `,
       });
@@ -37,7 +41,6 @@ export async function POST(request: Request) {
 
     // 2. طلب التأهيل للإمتياز الجغرافي
     if (type === 'qualification') {
-      // إرسال إشعار لك كمدير + إرسال تأكيد للعميل على بريده
       await resend.emails.send({
         from: 'Nexus Engine <onboarding@resend.dev>',
         to: email,
@@ -46,9 +49,9 @@ export async function POST(request: Request) {
           <div dir="rtl" style="font-family: sans-serif; padding: 20px; color: #333;">
             <h2>أهلاً ${name}،</h2>
             <p>تم استلام طلب تأهيل الامتياز الجغرافي لنطاق: <strong>${region}</strong> (${sector}).</p>
-            <p>فريقنا يتراجع طلبك حالياً وسنتواصل معك عبر البريد المعتمد لنفس الحساب.</p>
-            <hr/>
-            <p style="font-size: 12px; color: #777;">للعودة إلى منصة Nexus Engine في أي وقت: https://nexusengine.ai</p>
+            <p>فريقنا <strong>يراجع</strong> طلبك حالياً وسنتواصل معك عبر البريد المعتمد لنفس الحساب.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="font-size: 12px; color: #777;">للعودة إلى منصة Nexus Engine في أي وقت: <a href="${baseUrl}">${baseUrl}</a></p>
           </div>
         `,
       });
@@ -62,6 +65,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'نوع الطلب غير مدعوم' }, { status: 400 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ success: false, error: 'حدث خطأ أثناء الإرسال، تأكد من إعدادات المفاتيح' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'حدث خطأ أثناء الإرسال' }, { status: 500 });
   }
 }
