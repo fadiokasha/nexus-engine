@@ -5,7 +5,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
-    const { userName, userEmail, pdfDownloadUrl } = await request.json();
+const body = await request.json();
+const userEmail = body.userEmail || body.email;
+const userName = body.userName || body.name;
+const pdfDownloadUrl = body.pdfDownloadUrl;
 
     // رابط التحميل المباشر للـ PDF (يمكن تخصيصه من الإعدادات أو استخدام رابط ثابت)
     const pdfUrl = pdfDownloadUrl || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus-engine.vercel.app'}/technical-report.pdf`;
