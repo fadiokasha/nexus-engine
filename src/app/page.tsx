@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, ChevronLeft } from 'lucide-react';
+import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, Printer } from 'lucide-react';
 
 export default function Home() {
   // حالات النماذج (Form States)
@@ -134,9 +134,13 @@ export default function Home() {
     }
   };
 
+  // دالة طباعة/تحميل التقرير كـ PDF
+  const handlePrintPDF = () => {
+    window.print();
+  };
+
   return (
     <main className="min-h-screen bg-[#07090e] text-white selection:bg-[#D4AF37] selection:text-black font-sans relative overflow-x-hidden pb-12">
-      {/* إضاءة خلفية دافئة وراقية */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-radial from-[#D4AF37]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
 
       {/* الهيدر العلوي */}
@@ -158,12 +162,10 @@ export default function Home() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 pt-10 space-y-12 text-center">
-        {/* الوسم الترحيبي العلوي */}
         <div className="inline-block bg-white/[0.02] border border-white/10 rounded-full px-4 py-1.5 text-xs text-gray-300 backdrop-blur-md">
           تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
         </div>
 
-        {/* العنوان الرئيسي */}
         <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight text-white tracking-tight">
           منظومة إدارة الأصول الرقمية المؤتمتة —{' '}
           <span className="bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] bg-clip-text text-transparent whitespace-nowrap">
@@ -175,7 +177,6 @@ export default function Home() {
           امتلك امتياز تشغيل النطاق الإقليمي كـ "مالك استراتيجي للأصل الرقمي". أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
         </p>
 
-        {/* شريط توزيع العوائد */}
         <div className="bg-gradient-to-r from-white/[0.03] via-white/[0.06] to-white/[0.03] border border-[#D4AF37]/30 rounded-2xl p-4 text-xs md:text-sm text-gray-200 shadow-xl max-w-2xl mx-auto">
           <span className="text-[#D4AF37] font-bold">هيكل توزيع العوائد:</span> يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] font-bold">%80</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] font-bold">%20</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
         </div>
@@ -391,55 +392,106 @@ export default function Home() {
 
         {/* النافذة المنبثقة الشاملة (Modal) */}
         {modal?.open && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-            <div className="bg-[#0f1420] border-t-2 border-t-[#D4AF37] border-x border-b border-white/10 rounded-2xl p-6 md:p-8 max-w-xl w-full text-right relative shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200 print:p-0 print:static print:bg-white print:text-black">
+            <div className="bg-[#0f1420] border-t-2 border-t-[#D4AF37] border-x border-b border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full text-right relative shadow-2xl space-y-5 max-h-[88vh] overflow-y-auto print:max-h-none print:border-none print:shadow-none print:text-black">
               
               <button
                 onClick={() => setModal(null)}
-                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer print:hidden"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="border-b border-white/10 pb-3.5">
-                <div className="flex items-center gap-2.5 text-[#D4AF37] font-extrabold text-base">
-                  <FileText className="w-5 h-5 text-[#D4AF37]" />
-                  <span>{modal.title}</span>
+              <div className="border-b border-white/10 pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 text-[#D4AF37] font-extrabold text-base">
+                    <FileText className="w-5 h-5 text-[#D4AF37]" />
+                    <span>{modal.title}</span>
+                  </div>
+                  {modal.type === 'report' && (
+                    <button
+                      onClick={handlePrintPDF}
+                      className="bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer print:hidden"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>طباعة / حفظ PDF</span>
+                    </button>
+                  )}
                 </div>
                 {modal.subtitle && (
                   <p className="text-xs text-gray-400 mt-1">{modal.subtitle}</p>
                 )}
               </div>
 
-              {/* 1. نافذة التقرير الفني المنبثقة */}
+              {/* 1. التقرير الفني الكامل والكامل داخل النافذة */}
               {modal.type === 'report' && (
-                <div className="space-y-4 text-xs text-gray-300 leading-relaxed">
-                  <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <span className="text-gray-400">اسم المتقدم:</span>
+                <div className="space-y-5 text-xs text-gray-200 leading-relaxed print:text-black">
+                  
+                  {/* بيانات مقدم الطلب */}
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">اسم المستفيد:</span>
                       <span className="font-bold text-white">{modal.data?.name}</span>
                     </div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <span className="text-gray-400">البريد المسجل:</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">البريد الإلكتروني:</span>
                       <span className="font-bold text-[#D4AF37]">{modal.data?.email}</span>
                     </div>
                   </div>
 
-                  <div className="space-y-3 pt-1">
-                    <h4 className="font-bold text-white text-sm flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
-                      <span>ملخص التقرير الفني والهيكل التشغيلي:</span>
-                    </h4>
+                  {/* وثيقة التقرير الفني الكاملة */}
+                  <div className="space-y-4 pt-2">
                     
-                    <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3.5 space-y-2.5">
-                      <p>• <strong className="text-white">الأتمتة التشغيلية:</strong> تعتمد المنصة على خوارزميات ذكاء اصطناعي تتولى إدارة العمليات التشغيلية بالكامل دون حاجة لتدخل إداري يومي.</p>
-                      <p>• <strong className="text-white">نموذج توزيع العوائد:</strong> يحصل الشريك على 80% من صافي العوائد التشغيلية، بينما تستقطع المنصة 20% كرسوم تشغيل وتطوير برمجي.</p>
-                      <p>• <strong className="text-white">الحصرية الإقليمية:</strong> يتم تخصيص نطاق جغرافي محدد للشريك لضمان التفرغ الكامل للنمو والسيادة التشغيلية.</p>
+                    <div className="border-b border-white/10 pb-2">
+                      <h3 className="text-sm font-extrabold text-[#D4AF37]">1. النظرة العامة والمعمارية التقنية</h3>
+                      <p className="text-gray-300 mt-1 leading-relaxed">
+                        تعتبر منصة NEXUS ENGINE منظومة برمجية متكاملة لإدارة وتأهيل الأصول الرقمية المؤتمتة، حيث توفر بنية تحتية سحابية هجينة تعتمد على خوارزميات الذكاء الاصطناعي لمعالجة البيانات والتفاعلات دون الحاجة لإدارة تشغيلية بشرية يومية.
+                      </p>
                     </div>
+
+                    <div className="border-b border-white/10 pb-2">
+                      <h3 className="text-sm font-extrabold text-[#D4AF37]">2. محرك الأتمتة والسيادة التشغيلية</h3>
+                      <p className="text-gray-300 mt-1 leading-relaxed">
+                        يتولى النظام الآلي معالجة طلبيات النطاق المخصص، ربط قواعد البيانات، وتنفيذ بروتوكولات الأمان والحماية الذاتية. يحصل المرخص له على صلاحية متابعة الأداء ومراقبة المؤشرات عبر لوحة تحكم تحليلية متطورة.
+                      </p>
+                    </div>
+
+                    <div className="border-b border-white/10 pb-2">
+                      <h3 className="text-sm font-extrabold text-[#D4AF37]">3. نموذج توزيع العوائد والاستحقاق المالي</h3>
+                      <p className="text-gray-300 mt-1 leading-relaxed">
+                        يعتمد النظام نموذج مشاركة صافي العوائد بنسبة <strong className="text-white">%80 للشريك الاستراتيجي</strong> مقابل <strong className="text-white">%20 للمنصة</strong> لتغطية الرسوم التشغيلية والتطوير البرمجي واستدامة الخوادم. يتم تسوية العوائد دورياً وفق الاتفاقية المعتمدة.
+                      </p>
+                    </div>
+
+                    <div className="border-b border-white/10 pb-2">
+                      <h3 className="text-sm font-extrabold text-[#D4AF37]">4. سياسة الحصرية الإقليمية والتخصيص</h3>
+                      <p className="text-gray-300 mt-1 leading-relaxed">
+                        تضمن المنصة حصرية النطاق الجغرافي المسجل لكل مرخص له لمنع التضارب التشغيلي، وتستمر الحصرية طوال فترة سريان ترخيص الامتياز المعتمد.
+                      </p>
+                    </div>
+
                   </div>
 
-                  <p className="text-[11px] text-gray-400 text-center pt-2">
-                    تم إرسال نسخة تأكيدية شاملة إلى بريدك الإلكتروني المسجل.
+                  {/* أزرار الإجراءات داخل النافذة */}
+                  <div className="pt-2 flex flex-col sm:flex-row gap-3 print:hidden">
+                    <button
+                      onClick={handlePrintPDF}
+                      className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-extrabold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:brightness-110 transition-all cursor-pointer"
+                    >
+                      <Download className="w-4 h-4 text-black" />
+                      <span>تحميل / حفظ التقرير بصيغة PDF</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => setModal(null)}
+                      className="bg-white/10 hover:bg-white/15 text-white font-bold px-6 py-3 rounded-xl text-xs transition-colors cursor-pointer"
+                    >
+                      إغلاق النافذة
+                    </button>
+                  </div>
+
+                  <p className="text-[11px] text-gray-400 text-center pt-1 print:hidden">
+                    تم إرسال النسخة الكاملة الموثقة من هذا التقرير إلى بريدك الإلكتروني.
                   </p>
                 </div>
               )}
@@ -471,28 +523,37 @@ export default function Home() {
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>تم حفظ طلبك وسيتم مراجعته والتواصل معك رسمياً.</span>
                   </p>
+                  
+                  <button
+                    onClick={() => setModal(null)}
+                    className="w-full mt-2 bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    إغلاق
+                  </button>
                 </div>
               )}
 
               {/* 3. نافذة السياسات العامة */}
               {modal.type === 'policy' && (
-                <p className="text-xs text-gray-300 leading-relaxed font-normal py-2">
-                  {modal.message}
-                </p>
+                <div className="space-y-4">
+                  <p className="text-xs text-gray-300 leading-relaxed font-normal py-2">
+                    {modal.message}
+                  </p>
+                  <button
+                    onClick={() => setModal(null)}
+                    className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    إغلاق
+                  </button>
+                </div>
               )}
 
-              <button
-                onClick={() => setModal(null)}
-                className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
-              >
-                إغلاق
-              </button>
             </div>
           </div>
         )}
 
         {/* الفوتر الملكي التفاعلي */}
-        <footer className="w-full mt-20 pt-8 pb-6 border-t border-white/10 text-center text-xs text-gray-400 space-y-4">
+        <footer className="w-full mt-20 pt-8 pb-6 border-t border-white/10 text-center text-xs text-gray-400 space-y-4 print:hidden">
           <div className="flex justify-center items-center gap-6 text-gray-400 font-medium text-xs">
             <button
               onClick={() => openPolicyModal('privacy')}
