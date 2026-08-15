@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, Printer } from 'lucide-react';
+import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, Printer, ChevronLeft } from 'lucide-react';
 
 export default function Home() {
-  // حالات النماذج (Form States)
   const [reportForm, setReportForm] = useState({ name: '', email: '', phone: '' });
   const [qualForm, setQualForm] = useState({ 
     name: '', 
@@ -27,7 +26,6 @@ export default function Home() {
     data?: any 
   } | null>(null);
 
-  // فتح نوافذ السياسات والوثائق
   const openPolicyModal = (policyType: 'privacy' | 'disclaimer' | 'license') => {
     if (policyType === 'privacy') {
       setModal({
@@ -53,7 +51,6 @@ export default function Home() {
     }
   };
 
-  // إرسال طلب التقرير الفني
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingReport(true);
@@ -87,7 +84,6 @@ export default function Home() {
     }
   };
 
-  // إرسال طلب التأهيل للامتياز الجغرافي
   const handleQualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!qualForm.termsAgreed) {
@@ -134,7 +130,6 @@ export default function Home() {
     }
   };
 
-  // دالة طباعة/تحميل التقرير
   const handlePrintPDF = () => {
     window.print();
   };
@@ -390,32 +385,71 @@ export default function Home() {
           </form>
         </div>
 
-        {/* الفوتر الأسفل المطور بجميع البنود والحقوق */}
-        <footer className="w-full max-w-6xl mx-auto px-4 pt-12 pb-6 border-t border-white/5 mt-16 text-center text-xs text-gray-500 space-y-4 print:hidden">
-          <div className="flex flex-wrap justify-center gap-6 text-gray-400">
-            <button 
-              type="button" 
-              onClick={() => openPolicyModal('privacy')} 
-              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-            >
-              سياسة الخصوصية
-            </button>
-            <button 
-              type="button" 
-              onClick={() => openPolicyModal('disclaimer')} 
-              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-            >
-              إخلاء المسؤولية
-            </button>
-            <button 
-              type="button" 
-              onClick={() => openPolicyModal('license')} 
-              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-            >
-              وثيقة الترخيص
-            </button>
+        {/* الفوتر الملكي الفاخر بلمسات ذهبية وهيكلة احترافية */}
+        <footer className="w-full max-w-4xl mx-auto pt-16 pb-8 mt-20 relative print:hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+
+          <div className="bg-[#0c1019]/90 backdrop-blur-2xl border border-[#D4AF37]/25 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              
+              {/* شعار الماركة الفاخر */}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA771C] flex items-center justify-center font-black text-black text-lg shadow-md shadow-[#D4AF37]/20">
+                  N
+                </div>
+                <div className="text-right">
+                  <span className="font-extrabold text-sm tracking-widest text-white block leading-tight">NEXUS ENGINE</span>
+                  <span className="text-[10px] text-[#D4AF37] font-medium">Enterprise Sovereign Systems</span>
+                </div>
+              </div>
+
+              {/* أزرار السياسات بتنسيق زجاجي فاخر */}
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 text-xs">
+                <button 
+                  type="button" 
+                  onClick={() => openPolicyModal('license')} 
+                  className="px-4 py-2 rounded-xl bg-white/[0.02] border border-white/10 hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] text-gray-300 transition-all duration-300 font-semibold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>وثيقة الترخيص</span>
+                  <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => openPolicyModal('disclaimer')} 
+                  className="px-4 py-2 rounded-xl bg-white/[0.02] border border-white/10 hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] text-gray-300 transition-all duration-300 font-semibold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>إخلاء المسؤولية</span>
+                  <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => openPolicyModal('privacy')} 
+                  className="px-4 py-2 rounded-xl bg-white/[0.02] border border-white/10 hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] text-gray-300 transition-all duration-300 font-semibold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>سياسة الخصوصية</span>
+                  <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
+                </button>
+              </div>
+
+            </div>
+
+            {/* شريط حقوق الملكية السفلي */}
+            <div className="mt-6 pt-5 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
+              <div className="inline-flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>جميع الأنظمة محمية وتعمل بأتمتة كاملة</span>
+              </div>
+              <div>
+                <span>جميع الحقوق محفوظة © {new Date().getFullYear()} </span>
+                <span className="text-[#D4AF37] font-bold">NEXUS ENGINE</span>
+              </div>
+            </div>
+
           </div>
-          <p className="text-gray-500">© {new Date().getFullYear()} NEXUS ENGINE. جميع الحقوق محفوظة.</p>
         </footer>
 
         {/* النافذة المنبثقة الشاملة (Modal) */}
