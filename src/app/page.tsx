@@ -395,190 +395,121 @@ export default function Home() {
           <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200 print:p-0 print:static print:bg-white print:text-black">
             <div className="bg-[#0f1420] border-t-2 border-t-[#D4AF37] border-x border-b border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full text-right relative shadow-2xl space-y-5 max-h-[88vh] overflow-y-auto print:max-h-none print:border-none print:shadow-none print:text-black">
               
+              {/* زر الإغلاق العلوي */}
               <button
                 onClick={() => setModal(null)}
-                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer print:hidden"
+                className="absolute top-4 left-4 p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors print:hidden"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="border-b border-white/10 pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 text-[#D4AF37] font-extrabold text-base">
-                    <FileText className="w-5 h-5 text-[#D4AF37]" />
-                    <span>{modal.title}</span>
-                  </div>
-                  {modal.type === 'report' && (
-                    <button
-                      onClick={handlePrintPDF}
-                      className="bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer print:hidden"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span>طباعة / حفظ PDF</span>
-                    </button>
-                  )}
-                </div>
+              {/* العنوان والعنوان الفرعي */}
+              <div>
+                <h3 className="text-xl font-bold text-[#D4AF37]">{modal.title}</h3>
                 {modal.subtitle && (
                   <p className="text-xs text-gray-400 mt-1">{modal.subtitle}</p>
                 )}
               </div>
 
-              {/* 1. التقرير الفني الكامل والكامل داخل النافذة */}
+              {/* 1. عرض السياسات والإخلاء */}
+              {modal.type === 'policy' && (
+                <div className="text-sm text-gray-300 leading-relaxed py-2">
+                  <p>{modal.message}</p>
+                </div>
+              )}
+
+              {/* 2. عرض التقرير الفني المكتمل */}
               {modal.type === 'report' && (
-                <div className="space-y-5 text-xs text-gray-200 leading-relaxed print:text-black">
-                  
-                  {/* بيانات مقدم الطلب */}
-                  <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">اسم المستفيد:</span>
-                      <span className="font-bold text-white">{modal.data?.name}</span>
+                <div className="space-y-4">
+                  {/* بيانات المستفيد */}
+                  <div className="bg-white/[0.03] border border-white/10 rounded-xl p-3 text-xs text-gray-300 flex flex-wrap gap-4">
+                    <div><span className="text-gray-500">اسم المستفيد:</span> <strong className="text-white">{modal.data?.name}</strong></div>
+                    <div><span className="text-gray-500">البريد:</span> <strong className="text-white">{modal.data?.email}</strong></div>
+                    <div><span className="text-gray-500">الجوال:</span> <strong className="text-white">{modal.data?.phone}</strong></div>
+                  </div>
+
+                  {/* بنود التقرير الفني */}
+                  <div className="space-y-3 text-xs md:text-sm text-gray-300 leading-relaxed max-h-[40vh] overflow-y-auto pr-1">
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">1. النظرة العامة والمسارية التقنية</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">منظومة برمجية متكاملة لإدارة وتأهيل الأصول الرقمية المؤتمتة، توفر بنية تحتية سحابية تعتمد على الذكاء الاصطناعي لمعالجة العمليات دون أعباء تشغيلية بشرية.</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">البريد الإلكتروني:</span>
-                      <span className="font-bold text-[#D4AF37]">{modal.data?.email}</span>
+
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">2. محرك الأتمتة والسيادة التشغيلية</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">يتولى النظام الآلي ربط قواعد البيانات ومعالجة طلبات النطاق وتأمين الحماية، مع إمكانية متابعة المؤشرات التشغيلية والمالية عبر لوحة تحكم دقيقة.</p>
+                    </div>
+
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">3. نموذج توزيع العوائد (%80 / %20)</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">يستحق الشريك الاستراتيجي 80% من صافي العوائد التشغيلية مقابل 20% لتغطية رسوم تشغيل المنصة وأتمتة الذكاء الاصطناعي والدعم الفني.</p>
+                    </div>
+
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">4. الحصرية الإقليمية</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">تضمن المنصة حصرية النطاق الجغرافي المسجل للشريك لمنع التضارب التشغيلي طوال فترة سريان العقد.</p>
                     </div>
                   </div>
 
-                  {/* وثيقة التقرير الفني الكاملة */}
-                  <div className="space-y-4 pt-2">
-                    
-                    <div className="border-b border-white/10 pb-2">
-                      <h3 className="text-sm font-extrabold text-[#D4AF37]">1. النظرة العامة والمعمارية التقنية</h3>
-                      <p className="text-gray-300 mt-1 leading-relaxed">
-                        تعتبر منصة NEXUS ENGINE منظومة برمجية متكاملة لإدارة وتأهيل الأصول الرقمية المؤتمتة، حيث توفر بنية تحتية سحابية هجينة تعتمد على خوارزميات الذكاء الاصطناعي لمعالجة البيانات والتفاعلات دون الحاجة لإدارة تشغيلية بشرية يومية.
-                      </p>
-                    </div>
-
-                    <div className="border-b border-white/10 pb-2">
-                      <h3 className="text-sm font-extrabold text-[#D4AF37]">2. محرك الأتمتة والسيادة التشغيلية</h3>
-                      <p className="text-gray-300 mt-1 leading-relaxed">
-                        يتولى النظام الآلي معالجة طلبيات النطاق المخصص، ربط قواعد البيانات، وتنفيذ بروتوكولات الأمان والحماية الذاتية. يحصل المرخص له على صلاحية متابعة الأداء ومراقبة المؤشرات عبر لوحة تحكم تحليلية متطورة.
-                      </p>
-                    </div>
-
-                    <div className="border-b border-white/10 pb-2">
-                      <h3 className="text-sm font-extrabold text-[#D4AF37]">3. نموذج توزيع العوائد والاستحقاق المالي</h3>
-                      <p className="text-gray-300 mt-1 leading-relaxed">
-                        يعتمد النظام نموذج مشاركة صافي العوائد بنسبة <strong className="text-white">%80 للشريك الاستراتيجي</strong> مقابل <strong className="text-white">%20 للمنصة</strong> لتغطية الرسوم التشغيلية والتطوير البرمجي واستدامة الخوادم. يتم تسوية العوائد دورياً وفق الاتفاقية المعتمدة.
-                      </p>
-                    </div>
-
-                    <div className="border-b border-white/10 pb-2">
-                      <h3 className="text-sm font-extrabold text-[#D4AF37]">4. سياسة الحصرية الإقليمية والتخصيص</h3>
-                      <p className="text-gray-300 mt-1 leading-relaxed">
-                        تضمن المنصة حصرية النطاق الجغرافي المسجل لكل مرخص له لمنع التضارب التشغيلي، وتستمر الحصرية طوال فترة سريان ترخيص الامتياز المعتمد.
-                      </p>
-                    </div>
-
-                  </div>
-
-                  {/* أزرار الإجراءات داخل النافذة */}
-                  <div className="pt-2 flex flex-col sm:flex-row gap-3 print:hidden">
+                  {/* أزرار التحميل والطباعة */}
+                  <div className="pt-2 flex flex-wrap gap-3 print:hidden">
+                    <a
+                      href="/technical-report.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download="Nexus_Engine_Technical_Report.pdf"
+                      className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all text-center"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>تحميل التقرير PDF</span>
+                    </a>
                     <button
                       onClick={handlePrintPDF}
-                      className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-extrabold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:brightness-110 transition-all cursor-pointer"
+                      className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all"
                     >
-                      <Download className="w-4 h-4 text-black" />
-                      <span>تحميل / حفظ التقرير بصيغة PDF</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => setModal(null)}
-                      className="bg-white/10 hover:bg-white/15 text-white font-bold px-6 py-3 rounded-xl text-xs transition-colors cursor-pointer"
-                    >
-                      إغلاق النافذة
+                      <Printer className="w-4 h-4 text-[#D4AF37]" />
+                      <span>طباعة</span>
                     </button>
                   </div>
-
-                  <p className="text-[11px] text-gray-400 text-center pt-1 print:hidden">
-                    تم إرسال النسخة الكاملة الموثقة من هذا التقرير إلى بريدك الإلكتروني.
-                  </p>
                 </div>
               )}
 
-              {/* 2. نافذة طلب التأهيل والمسودة */}
-              {modal.type === 'qualification' && modal.data && (
-                <div className="bg-black/40 border border-white/10 rounded-xl p-4 text-xs space-y-3 text-gray-200">
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-gray-400">الطرف الثاني (الشريك):</span>
-                    <span className="font-semibold text-white">{modal.data.partner}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-gray-400">البريد الإلكتروني:</span>
-                    <span className="font-semibold text-white">{modal.data.email}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-gray-400">الهاتف الرسمي:</span>
-                    <span className="font-semibold text-white">{modal.data.phone}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-gray-400">النطاق الجغرافي:</span>
-                    <span className="font-semibold text-white">{modal.data.region}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-gray-400">القطاع المستهدف:</span>
-                    <span className="font-semibold text-white">{modal.data.sector}</span>
-                  </div>
-                  <p className="text-center text-emerald-400 font-bold pt-2 text-[11px] flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>تم حفظ طلبك وسيتم مراجعته والتواصل معك رسمياً.</span>
-                  </p>
-                  
-                  <button
-                    onClick={() => setModal(null)}
-                    className="w-full mt-2 bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
-                  >
-                    إغلاق
-                  </button>
-                </div>
-              )}
-
-              {/* 3. نافذة السياسات العامة */}
-              {modal.type === 'policy' && (
+              {/* 3. عرض تم اعتماد طلب التأهيل */}
+              {modal.type === 'qualification' && (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-300 leading-relaxed font-normal py-2">
-                    {modal.message}
-                  </p>
-                  <button
-                    onClick={() => setModal(null)}
-                    className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
-                  >
-                    إغلاق
-                  </button>
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-bold text-emerald-300">تم تسجيل طلب التأهيل بنجاح</p>
+                      <p className="text-gray-400 mt-0.5">تم إرسال نسخة المراجعة ومسودة الاتفاقية إلى بريدك الإلكتروني.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 space-y-2 text-xs">
+                    <div className="flex justify-between"><span className="text-gray-400">الشريك المتقدم:</span><span className="font-bold text-white">{modal.data?.partner}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">البريد الإلكتروني:</span><span className="font-bold text-white">{modal.data?.email}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">النطاق المطلوب:</span><span className="font-bold text-[#D4AF37]">{modal.data?.region}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">القطاع:</span><span className="font-bold text-white">{modal.data?.sector}</span></div>
+                  </div>
                 </div>
               )}
+
+              {/* زر الإغلاق السفلي */}
+              <div className="pt-2 border-t border-white/5 flex justify-end print:hidden">
+                <button
+                  onClick={() => setModal(null)}
+                  className="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  إغلاق
+                </button>
+              </div>
 
             </div>
           </div>
         )}
 
-        {/* الفوتر الملكي التفاعلي */}
-        <footer className="w-full mt-20 pt-8 pb-6 border-t border-white/10 text-center text-xs text-gray-400 space-y-4 print:hidden">
-          <div className="flex justify-center items-center gap-6 text-gray-400 font-medium text-xs">
-            <button
-              onClick={() => openPolicyModal('privacy')}
-              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-            >
-              سياسة الخصوصية
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => openPolicyModal('disclaimer')}
-              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-            >
-              إخلاء المسؤولية
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => openPolicyModal('license')}
-              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-            >
-              وثيقة الترخيص
-            </button>
-          </div>
-          <p className="text-gray-500 font-mono text-[11px]">© 2026 NEXUS ENGINE. جميع الحقوق محفوظة.</p>
-        </footer>
       </div>
     </main>
   );
+}
 }
