@@ -9,11 +9,14 @@ const body = await request.json();
 const userEmail = body.userEmail || body.email;
 const userName = body.userName || body.name;
 const pdfDownloadUrl = body.pdfDownloadUrl;
-
+const type = body.type || body.formType;
     // رابط التحميل المباشر للـ PDF (يمكن تخصيصه من الإعدادات أو استخدام رابط ثابت)
     const pdfUrl = pdfDownloadUrl || 'https://nexus-engine-v6.vercel.app/technical-report.pdf';
     const platformUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus-engine-v6.vercel.app';
-
+const isQualification = type === 'qualification';
+const emailSubject = isQualification 
+  ? 'تأكيد تسجيل طلب التأهيل ومسودة الاتفاقية - Nexus Engine' 
+  : 'التقرير الفني والملف التقديمي - Nexus Engine';
     const emailHtml = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
@@ -99,7 +102,7 @@ const pdfDownloadUrl = body.pdfDownloadUrl;
     </html>
     `;
 
-    const data = await resend.emails.send({
+    subject: emailSubject,
       from: 'Nexus Engine <onboarding@resend.dev>', // استبدل بدومينك المعتمد إن وجد
       to: [userEmail],
       subject: 'التقرير الفني الشامل والملف التقديمي - Nexus Engine',
