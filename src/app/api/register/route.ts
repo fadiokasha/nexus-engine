@@ -11,8 +11,8 @@ const userName = body.userName || body.name;
 const pdfDownloadUrl = body.pdfDownloadUrl;
 
     // رابط التحميل المباشر للـ PDF (يمكن تخصيصه من الإعدادات أو استخدام رابط ثابت)
-    const pdfUrl = pdfDownloadUrl || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus-engine.vercel.app'}/technical-report.pdf`;
-    const platformUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus-engine.vercel.app';
+    const pdfUrl = pdfDownloadUrl || 'https://nexus-engine-v6.vercel.app/technical-report.pdf';
+    const platformUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus-engine-v6.vercel.app';
 
     const emailHtml = `
     <!DOCTYPE html>
