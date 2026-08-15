@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Zap, Lock, CheckCircle, X, FileText } from 'lucide-react';
+import { Shield, Zap, Lock, X, FileText } from 'lucide-react';
 
 export default function Home() {
   // حالات النماذج (Form States)
@@ -377,35 +377,49 @@ export default function Home() {
 
         {/* النافذة المنبثقة للنتائج والسياسات (Modal) */}
         {modal?.open && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-            <div className="bg-[#0f1420] border border-[#D4AF37]/50 rounded-2xl p-6 md:p-8 max-w-lg w-full text-right relative shadow-2xl space-y-4">
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+            <div className="bg-[#0f1420] border-t-2 border-t-[#D4AF37] border-x border-b border-white/10 rounded-2xl p-6 md:p-8 max-w-lg w-full text-right relative shadow-2xl space-y-5">
               <button
                 onClick={() => setModal(null)}
-                className="absolute top-4 left-4 text-gray-400 hover:text-white"
+                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2 text-[#D4AF37] font-bold text-base border-b border-white/10 pb-3">
-                <FileText className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 text-[#D4AF37] font-extrabold text-base border-b border-white/10 pb-3.5">
+                <FileText className="w-5 h-5 text-[#D4AF37]" />
                 <span>{modal.title}</span>
               </div>
 
               {modal.data ? (
-                <div className="bg-black/50 border border-white/10 rounded-xl p-4 text-xs space-y-2 text-gray-300">
-                  <p className="font-bold text-center text-[#D4AF37] mb-2">{modal.message}</p>
-                  <p><strong>الطرف الثاني (الشريك):</strong> {modal.data.partner}</p>
-                  <p><strong>البريد الإلكتروني:</strong> {modal.data.email}</p>
-                  <p><strong>الهاتف:</strong> {modal.data.phone}</p>
-                  <p><strong>النطاق الجغرافي:</strong> {modal.data.region}</p>
-                  <p><strong>القطاع:</strong> {modal.data.sector}</p>
-                  <hr className="border-white/10 my-2" />
-                  <p className="text-center text-emerald-400 font-bold">
-                    يستحق الشريك %80 من صافي العوائد التشغيلية مقابل %20 لفرع المنصة وللذكاء الاصطناعي.
+                <div className="bg-black/40 border border-white/10 rounded-xl p-4 text-xs space-y-2.5 text-gray-200">
+                  <p className="font-bold text-center text-[#D4AF37] mb-3 text-sm">{modal.message}</p>
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
+                    <span className="text-gray-400">الطرف الثاني (الشريك):</span>
+                    <span className="font-semibold text-white">{modal.data.partner}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
+                    <span className="text-gray-400">البريد الإلكتروني:</span>
+                    <span className="font-semibold text-white">{modal.data.email}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
+                    <span className="text-gray-400">الهاتف:</span>
+                    <span className="font-semibold text-white">{modal.data.phone}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
+                    <span className="text-gray-400">النطاق الجغرافي:</span>
+                    <span className="font-semibold text-white">{modal.data.region}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
+                    <span className="text-gray-400">القطاع:</span>
+                    <span className="font-semibold text-white">{modal.data.sector}</span>
+                  </div>
+                  <p className="text-center text-emerald-400 font-bold pt-2 text-[11px]">
+                    ✓ يستحق الشريك %80 من صافي العوائد التشغيلية مقابل %20 لرسوم التشغيل والذكاء الاصطناعي.
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-gray-300 leading-relaxed font-light py-2">
+                <p className="text-xs text-gray-300 leading-relaxed font-normal py-1">
                   {modal.message}
                 </p>
               )}
@@ -414,15 +428,15 @@ export default function Home() {
                 <a
                   href={modal.pdfUrl}
                   download
-                  className="block text-center bg-[#D4AF37] text-black font-bold py-2.5 px-4 rounded-xl text-xs hover:bg-[#c39f2e] transition-colors"
+                  className="block text-center bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-extrabold py-3 px-4 rounded-xl text-xs hover:opacity-90 transition-opacity shadow-lg shadow-[#D4AF37]/20"
                 >
-                  تحميل الملف مباشرة (PDF)
+                  تحميل الملف مباشرة (PDF) 📥
                 </a>
               )}
 
               <button
                 onClick={() => setModal(null)}
-                className="w-full bg-white/10 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/20 transition-colors"
+                className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
               >
                 تم
               </button>
