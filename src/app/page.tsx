@@ -53,7 +53,7 @@ export default function Home() {
     }
   };
 
-  // إرسال طلب التقرير الفني وعرض النافذة المنبثقة مباشرة
+  // إرسال طلب التقرير الفني
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingReport(true);
@@ -134,7 +134,7 @@ export default function Home() {
     }
   };
 
-  // دالة طباعة/تحميل التقرير كـ PDF
+  // دالة طباعة/تحميل التقرير
   const handlePrintPDF = () => {
     window.print();
   };
@@ -390,12 +390,39 @@ export default function Home() {
           </form>
         </div>
 
+        {/* الفوتر الأسفل المطور بجميع البنود والحقوق */}
+        <footer className="w-full max-w-6xl mx-auto px-4 pt-12 pb-6 border-t border-white/5 mt-16 text-center text-xs text-gray-500 space-y-4 print:hidden">
+          <div className="flex flex-wrap justify-center gap-6 text-gray-400">
+            <button 
+              type="button" 
+              onClick={() => openPolicyModal('privacy')} 
+              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              سياسة الخصوصية
+            </button>
+            <button 
+              type="button" 
+              onClick={() => openPolicyModal('disclaimer')} 
+              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              إخلاء المسؤولية
+            </button>
+            <button 
+              type="button" 
+              onClick={() => openPolicyModal('license')} 
+              className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+            >
+              وثيقة الترخيص
+            </button>
+          </div>
+          <p className="text-gray-500">© {new Date().getFullYear()} NEXUS ENGINE. جميع الحقوق محفوظة.</p>
+        </footer>
+
         {/* النافذة المنبثقة الشاملة (Modal) */}
         {modal?.open && (
           <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200 print:p-0 print:static print:bg-white print:text-black">
             <div className="bg-[#0f1420] border-t-2 border-t-[#D4AF37] border-x border-b border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full text-right relative shadow-2xl space-y-5 max-h-[88vh] overflow-y-auto print:max-h-none print:border-none print:shadow-none print:text-black">
               
-              {/* زر الإغلاق العلوي */}
               <button
                 onClick={() => setModal(null)}
                 className="absolute top-4 left-4 p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors print:hidden"
@@ -403,7 +430,6 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* العنوان والعنوان الفرعي */}
               <div>
                 <h3 className="text-xl font-bold text-[#D4AF37]">{modal.title}</h3>
                 {modal.subtitle && (
@@ -411,24 +437,20 @@ export default function Home() {
                 )}
               </div>
 
-              {/* 1. عرض السياسات والإخلاء */}
               {modal.type === 'policy' && (
                 <div className="text-sm text-gray-300 leading-relaxed py-2">
                   <p>{modal.message}</p>
                 </div>
               )}
 
-              {/* 2. عرض التقرير الفني المكتمل */}
               {modal.type === 'report' && (
                 <div className="space-y-4">
-                  {/* بيانات المستفيد */}
                   <div className="bg-white/[0.03] border border-white/10 rounded-xl p-3 text-xs text-gray-300 flex flex-wrap gap-4">
                     <div><span className="text-gray-500">اسم المستفيد:</span> <strong className="text-white">{modal.data?.name}</strong></div>
                     <div><span className="text-gray-500">البريد:</span> <strong className="text-white">{modal.data?.email}</strong></div>
                     <div><span className="text-gray-500">الجوال:</span> <strong className="text-white">{modal.data?.phone}</strong></div>
                   </div>
 
-                  {/* بنود التقرير الفني */}
                   <div className="space-y-3 text-xs md:text-sm text-gray-300 leading-relaxed max-h-[40vh] overflow-y-auto pr-1">
                     <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
                       <h4 className="text-[#D4AF37] font-bold mb-1">1. النظرة العامة والمسارية التقنية</h4>
@@ -451,7 +473,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* أزرار التحميل والطباعة */}
                   <div className="pt-2 flex flex-wrap gap-3 print:hidden">
                     <a
                       href="/technical-report.pdf"
@@ -474,7 +495,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* 3. عرض تم اعتماد طلب التأهيل */}
               {modal.type === 'qualification' && (
                 <div className="space-y-4">
                   <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
@@ -494,7 +514,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* زر الإغلاق السفلي */}
               <div className="pt-2 border-t border-white/5 flex justify-end print:hidden">
                 <button
                   onClick={() => setModal(null)}
