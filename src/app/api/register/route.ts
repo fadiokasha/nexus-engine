@@ -44,7 +44,7 @@ const emailSubject = isQualification
         .download-link { display: inline-block; background-color: #10172a; color: #f59e0b; border: 1px solid #f59e0b; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; }
         
         .btn-container { text-align: center; margin-top: 15px; margin-bottom: 25px; }
-        .main-btn { display: inline-block; background-color: #f59e0b; color: #0f172a; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 15px; }
+        .main-btn { display: inline-block; background: linear-gradient(135deg, #D4AF37, #AA771C); color: #000000; font-weight: bold; padding: 12px 30px; border-radius: 8px; text-decoration: none; }
         
         .footer { background-color: #090d16; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #1e293b; }
       </style>
@@ -54,7 +54,7 @@ const emailSubject = isQualification
         
         <!-- Header -->
         <div class="header">
-          <div class="title">NEXUS ENGINE</div>
+          <div class="title" style="color: #D4AF37;">NEXUS ENGINE</div>
           <div class="subtitle">منظومة إدارة الأصول الرقمية المؤتمتة</div>
         </div>
 
