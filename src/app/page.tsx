@@ -540,10 +540,10 @@ export default function Home() {
                   </div>
 
                   <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 space-y-2 text-xs">
-                    <div className="flex justify-between"><span className="text-gray-400">الشريك المتقدم:</span><span className="font-bold text-white">{modal.data?.partner}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">البريد الإلكتروني:</span><span className="font-bold text-white">{modal.data?.email}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">الشريك المتقدم:</span><span className="font-bold text-[#D4AF37]">{modal.data?.partner}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">البريد الإلكتروني:</span><span className="font-bold text-[#D4AF37]">{modal.data?.email}</span></div>
                     <div className="flex justify-between"><span className="text-gray-400">النطاق المطلوب:</span><span className="font-bold text-[#D4AF37]">{modal.data?.region}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">القطاع:</span><span className="font-bold text-white">{modal.data?.sector}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">القطاع:</span><span className="font-bold text-[#D4AF37]">{modal.data?.sector}</span></div>
                   </div>
                 </div>
               )}
