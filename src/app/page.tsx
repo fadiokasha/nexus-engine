@@ -165,9 +165,9 @@ export default function Home() {
   <span className="block text-white mb-3">
     منظومة إدارة الأصول الرقمية المؤتمتة
   </span>
-  <span className="block bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] bg-clip-text text-transparent tracking-wider">
-    NEXUS ENGINE
-  </span>
+  <span className="block bg-gradient-to-r from-[#D4AF37] to-[#B8860B] bg-clip-text text-transparent font-bold tracking-wider mt-2">
+  NEXUS ENGINE
+</span>
 </h1>
 
         <p className="text-sm md:text-base text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
