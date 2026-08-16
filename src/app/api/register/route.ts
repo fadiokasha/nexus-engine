@@ -66,7 +66,7 @@ const emailSubject = isQualification
           </p>
 
           <!-- التقرير الفني المدمج كاملاً -->
-          <div class="report-box">
+          <div class="report-box" style="${isQualification ? 'display: none;' : ''}">
             <div class="section-title">1. النظرة العامة والمسارية التقنية</div>
             <p class="section-desc">منظومة برمجية متكاملة لإدارة وتأهيل الأصول الرقمية المؤتمتة، حيث توفر بنية تحتية سحابية هجينة تعتمد على خوارزميات الذكاء الاصطناعي لمعالجة البيانات والتفاعلات دون الحاجة لإدارة تشغيلية بشرية يومية.</p>
 
@@ -81,7 +81,7 @@ const emailSubject = isQualification
           </div>
 
           <!-- النص المطلوب ورابط التحميل المباشر (موقعه المباشر فوق زر العودة) -->
-          <div class="download-box">
+          <div class="download-box" style="${isQualification ? 'display: none;' : ''}">
             <div class="download-text">يمكنك تحميل التقرير الفني مباشرة عبر الرابط التالي:</div>
             <a href="${pdfUrl}" target="_blank" download class="download-link">
               📄 تحميل التقرير الفني PDF
