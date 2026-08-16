@@ -102,12 +102,12 @@ const emailSubject = isQualification
     </html>
     `;
 
-    subject: emailSubject,
-      from: 'Nexus Engine <onboarding@resend.dev>', // استبدل بدومينك المعتمد إن وجد
-      to: [userEmail],
-      subject: 'التقرير الفني الشامل والملف التقديمي - Nexus Engine',
-      html: emailHtml,
-    });
+    const data = await resend.emails.send({
+  from: 'Nexus Engine <onboarding@resend.dev>',
+  to: [userEmail],
+  subject: emailSubject,
+  html: emailHtml,
+});
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
