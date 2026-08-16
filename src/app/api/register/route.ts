@@ -60,10 +60,12 @@ const emailSubject = isQualification
 
         <!-- Main Body -->
         <div class="content">
-          <div class="welcome">أهلاً بك ${userName || 'Fadi Azhari'}</div>
-          <p class="text">
-            ${emailText}
-          </p>
+          <div class="welcome">أهلاً بك <span style="color: #D4AF37;">${userName || 'Fadi Azhari'}</span></div>
+<div style="background: #0f1420; border: 1px solid rgba(212, 175, 55, 0.25); border-right: 4px solid #D4AF37; border-radius: 12px; padding: 20px; margin: 25px 0; text-align: right;">
+  <p style="color: #e5e7eb; font-size: 15px; line-height: 1.8; margin: 0; font-weight: 500;">
+    ${emailText}
+  </p>
+</div>
 
           <!-- التقرير الفني المدمج كاملاً -->
           <div class="report-box" style="${isQualification ? 'display: none;' : ''}">
