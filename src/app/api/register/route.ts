@@ -17,6 +17,9 @@ const isQualification = type === 'qualification';
 const emailSubject = isQualification 
   ? 'تأكيد تسجيل طلب التأهيل ومسودة الاتفاقية - Nexus Engine' 
   : 'التقرير الفني والملف التقديمي - Nexus Engine';
+    const emailText = isQualification
+  ? 'تم استقبال طلب التأهيل والاعتماد بنجاح. جاري مراجعة طلبك من قبل الفريق المختص لمتابعة إجراءات الاعتماد.'
+  : 'تم اعتماد طلب استعراض التقرير الفني والملف التقديمي بنجاح. تجد أدناه النص الكامل للتقرير المعتمد.';
     const emailHtml = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
@@ -59,7 +62,7 @@ const emailSubject = isQualification
         <div class="content">
           <div class="welcome">أهلاً بك ${userName || 'Fadi Azhari'}</div>
           <p class="text">
-            شكراً لاهتمامك بـ <strong>Nexus Engine</strong>. تم اعتماد طلب استعراض التقرير الفني والملف التقديمي بنجاح. تجد أدناه النص الكامل للتقرير المعتمد:
+            ${emailText}
           </p>
 
           <!-- التقرير الفني المدمج كاملاً -->
