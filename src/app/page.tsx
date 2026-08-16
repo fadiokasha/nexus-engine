@@ -161,12 +161,14 @@ export default function Home() {
           تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
         </div>
 
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold leading-tight text-white tracking-tight">
-          منظومة إدارة الأصول الرقمية المؤتمتة —{' '}
-          <span className="bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] bg-clip-text text-transparent whitespace-nowrap">
-            NEXUS ENGINE
-          </span>
-        </h1>
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center leading-snug my-6">
+  <span className="block text-white mb-3">
+    منظومة إدارة الأصول الرقمية المؤتمتة
+  </span>
+  <span className="block bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] bg-clip-text text-transparent tracking-wider">
+    NEXUS ENGINE
+  </span>
+</h1>
 
         <p className="text-sm md:text-base text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
           امتلك امتياز تشغيل النطاق الإقليمي كـ "مالك استراتيجي للأصل الرقمي". أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
