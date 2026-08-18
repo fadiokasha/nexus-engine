@@ -1,5 +1,5 @@
 'use client';
-
+import Image from "next/image";
 import React, { useState } from 'react';
 import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, Printer, ChevronLeft } from 'lucide-react';
 
