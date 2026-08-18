@@ -399,7 +399,13 @@ export default function Home() {
               {/* شعار الماركة الفاخر */}
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA771C] flex items-center justify-center font-black text-black text-lg shadow-md shadow-[#D4AF37]/20">
-                  N
+                  <Image 
+  src="/logo.png" 
+  alt="Nexus Engine Logo" 
+  width={40} 
+  height={40} 
+  className="rounded-full object-cover" 
+/>
                 </div>
                 <div className="text-right">
                   <span className="font-extrabold text-sm tracking-widest text-white block leading-tight">NEXUS ENGINE</span>
