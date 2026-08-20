@@ -5,21 +5,49 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
 export async function POST(request: Request) {
   try {
-const body = await request.json();
-const userEmail = body.userEmail || body.email;
-const userName = body.userName || body.name;
-const pdfDownloadUrl = body.pdfDownloadUrl;
-const type = body.type || body.formType;
-    // رابط التحميل المباشر للـ PDF (يمكن تخصيصه من الإعدادات أو استخدام رابط ثابت)
+    const body = await request.json();
+    const userEmail = body.userEmail || body.email;
+    const userName = body.userName || body.name;
+    const phone = body.phone || body.userPhone || 'غير محدد';
+    const sector = body.sector || 'غير محدد';
+    const region = body.region || 'غير محدد';
+    const pdfDownloadUrl = body.pdfDownloadUrl;
+    const type = body.type || body.formType;
+
     const pdfUrl = pdfDownloadUrl || 'https://nexus-engine-v6.vercel.app/technical-report.pdf';
     const platformUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus-engine-v6.vercel.app';
-const isQualification = type === 'qualification';
-const emailSubject = isQualification 
-  ? 'تأكيد تسجيل طلب التأهيل ومسودة الاتفاقية - Nexus Engine' 
-  : 'التقرير الفني والملف التقديمي - Nexus Engine';
+    const isQualification = type === 'qualification';
+
+    const emailSubject = isQualification 
+      ? 'تأكيد تسجيل طلب التأهيل ومسودة الاتفاقية - Nexus Engine' 
+      : 'التقرير الفني والملف التقديمي - Nexus Engine';
+
     const emailText = isQualification
-  ? 'تم استقبال طلب التأهيل والاعتماد بنجاح. جاري مراجعة طلبك من قبل الفريق المختص لمتابعة إجراءات الاعتماد.'
-  : 'تم اعتماد طلب استعراض التقرير الفني والملف التقديمي بنجاح. تجد أدناه النص الكامل للتقرير المعتمد.';
+      ? 'تم استقبال طلب التأهيل والاعتماد بنجاح. جاري مراجعة طلبك من قبل الفريق المختص لمتابعة إجراءات الاعتماد.'
+      : 'تم اعتماد طلب استعراض التقرير الفني والملف التقديمي بنجاح. تجد أدناه النص الكامل للتقرير المعتمد.';
+
+    // 1. إرسال إشعار فوري للآدمن يحتوي على كافة البيانات المرفوعة
+    await resend.emails.send({
+      from: 'Nexus Engine <onboarding@resend.dev>',
+      to: 'fadiazhari90@gmail.com',
+      replyTo: userEmail,
+      subject: `📥 طلب جديد (${isQualification ? 'تأهيل' : 'تقرير فني'}): ${userName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; background-color: #0c1019; color: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #D4AF37;">
+          <h2 style="color: #D4AF37; margin-bottom: 20px;">بيانات الطلب الجديد</h2>
+          <p><strong>اسم الشريك المتقدم:</strong> ${userName}</p>
+          <p><strong>البريد الإلكتروني:</strong> ${userEmail}</p>
+          <p><strong>رقم الهاتف:</strong> ${phone}</p>
+          <p><strong>النطاق المطلوب:</strong> ${region}</p>
+          <p><strong>القطاع:</strong> ${sector}</p>
+          <p><strong>نوع الطلب:</strong> ${isQualification ? 'طلب تأهيل واعتماد' : 'طلب تقرير فني'}</p>
+          <hr style="border-color: #333; margin: 20px 0;" />
+          <p style="color: #888; font-size: 13px;">💡 للرد على هذا العميل مباشرة، اضغط على زر "الرد (Reply)" في بريدك.</p>
+        </div>
+      `,
+    });
+
+    // 2. إيميل العميل الأصلي الكامل
     const emailHtml = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
@@ -33,7 +61,6 @@ const emailSubject = isQualification
         .subtitle { color: #94a3b8; font-size: 13px; margin-top: 5px; }
         .content { padding: 30px; }
         .welcome { font-size: 20px; font-weight: bold; color: #ffffff; margin-bottom: 15px; }
-        .text { color: #cbd5e1; font-size: 14px; line-height: 1.8; margin-bottom: 20px; }
         
         .report-box { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin: 25px 0; }
         .section-title { color: #f59e0b; font-size: 15px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
@@ -51,23 +78,19 @@ const emailSubject = isQualification
     </head>
     <body>
       <div class="container">
-        
-        <!-- Header -->
         <div class="header">
           <div class="title" style="color: #D4AF37;">NEXUS ENGINE</div>
           <div class="subtitle">منظومة إدارة الأصول الرقمية المؤتمتة</div>
         </div>
 
-        <!-- Main Body -->
         <div class="content">
           <div class="welcome">أهلاً بك <span style="color: #D4AF37;">${userName || 'Fadi Azhari'}</span></div>
-<div style="background: #0f1420; border: 1px solid rgba(212, 175, 55, 0.25); border-right: 4px solid #D4AF37; border-radius: 12px; padding: 20px; margin: 25px 0; text-align: right;">
-  <p style="color: #e5e7eb; font-size: 15px; line-height: 1.8; margin: 0; font-weight: 500;">
-    ${emailText}
-  </p>
-</div>
+          <div style="background: #0f1420; border: 1px solid rgba(212, 175, 55, 0.25); border-right: 4px solid #D4AF37; border-radius: 12px; padding: 20px; margin: 25px 0; text-align: right;">
+            <p style="color: #e5e7eb; font-size: 15px; line-height: 1.8; margin: 0; font-weight: 500;">
+              ${emailText}
+            </p>
+          </div>
 
-          <!-- التقرير الفني المدمج كاملاً -->
           <div class="report-box" style="${isQualification ? 'display: none;' : ''}">
             <div class="section-title">1. النظرة العامة والمسارية التقنية</div>
             <p class="section-desc">منظومة برمجية متكاملة لإدارة وتأهيل الأصول الرقمية المؤتمتة، حيث توفر بنية تحتية سحابية هجينة تعتمد على خوارزميات الذكاء الاصطناعي لمعالجة البيانات والتفاعلات دون الحاجة لإدارة تشغيلية بشرية يومية.</p>
@@ -82,7 +105,6 @@ const emailSubject = isQualification
             <p class="section-desc">تضمن المنصة حصرية النطاق الجغرافي المسجل لكل مرخص له لمنع التضارب التشغيلي، وتستمر الحصرية طوال فترة سريان ترخيص الامتياز المعتمد.</p>
           </div>
 
-          <!-- النص المطلوب ورابط التحميل المباشر (موقعه المباشر فوق زر العودة) -->
           <div class="download-box" style="${isQualification ? 'display: none;' : ''}">
             <div class="download-text">يمكنك تحميل التقرير الفني مباشرة عبر الرابط التالي:</div>
             <a href="${pdfUrl}" target="_blank" download class="download-link">
@@ -90,29 +112,26 @@ const emailSubject = isQualification
             </a>
           </div>
 
-          <!-- زر العودة إلى المنصة الرئيسية -->
           <div class="btn-container">
             <a href="${platformUrl}" class="main-btn">العودة إلى المنصة الرئيسية</a>
           </div>
-
         </div>
 
-        <!-- Footer -->
         <div class="footer">
           © 2026 NEXUS ENGINE. جميع الحقوق محفوظة.
         </div>
-
       </div>
     </body>
     </html>
     `;
 
+    // 3. إرسال البريد للعميل
     const data = await resend.emails.send({
-  from: 'Nexus Engine <onboarding@resend.dev>',
-  to: [userEmail],
-  subject: emailSubject,
-  html: emailHtml,
-});
+      from: 'Nexus Engine <onboarding@resend.dev>',
+      to: [userEmail],
+      subject: emailSubject,
+      html: emailHtml,
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
