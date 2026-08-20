@@ -26,12 +26,12 @@ export async function POST(request: Request) {
       ? 'تم استقبال طلب التأهيل والاعتماد بنجاح. جاري مراجعة طلبك من قبل الفريق المختص لمتابعة إجراءات الاعتماد.'
       : 'تم اعتماد طلب استعراض التقرير الفني والملف التقديمي بنجاح. تجد أدناه النص الكامل للتقرير المعتمد.';
 
-    // 1. إرسال إشعار فوري للآدمن يحتوي على كافة البيانات المرفوعة
-    await resend.emails.send({
-      from: 'Nexus Engine <onboarding@resend.dev>',
-      to: 'fadiazhari90@gmail.com',
-      replyTo: userEmail,
-      subject: `📥 طلب جديد (${isQualification ? 'تأهيل' : 'تقرير فني'}): ${userName}`,
+    // 1. إرسال إشعار فوري لك (الآدمن) بكامل بيانات العميل
+await resend.emails.send({
+  from: 'Nexus Engine <onboarding@resend.dev>',
+  to: 'nexusengine.v6@gmail.com', // البريد الجديد للاستلام
+  replyTo: userEmail,
+  subject: `📥 طلب جديد (${isQualification ? 'تأهيل' : 'تقرير فني'}): ${userName}`,
       html: `
         <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; background-color: #0c1019; color: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #D4AF37;">
           <h2 style="color: #D4AF37; margin-bottom: 20px;">بيانات الطلب الجديد</h2>
