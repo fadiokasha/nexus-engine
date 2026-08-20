@@ -27,11 +27,11 @@ export async function POST(request: Request) {
       : 'تم اعتماد طلب استعراض التقرير الفني والملف التقديمي بنجاح. تجد أدناه النص الكامل للتقرير المعتمد.';
 
     // 1. إرسال إشعار فوري لك (الآدمن) بكامل بيانات العميل
-await resend.emails.send({
-  from: 'Nexus Engine <onboarding@resend.dev>',
-  to: 'nexusengine.v6@gmail.com', // البريد الجديد للاستلام
-  replyTo: userEmail,
-  subject: `📥 طلب جديد (${isQualification ? 'تأهيل' : 'تقرير فني'}): ${userName}`,
+    await resend.emails.send({
+      from: 'Nexus Engine <onboarding@resend.dev>',
+      to: 'nexusengine.v6@gmail.com', // البريد الجديد للاستلام
+      replyTo: userEmail,
+      subject: `📥 طلب جديد (${isQualification ? 'تأهيل' : 'تقرير فني'}): ${userName}`,
       html: `
         <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; background-color: #0c1019; color: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #D4AF37;">
           <h2 style="color: #D4AF37; margin-bottom: 20px;">بيانات الطلب الجديد</h2>
@@ -46,6 +46,9 @@ await resend.emails.send({
         </div>
       `,
     });
+
+    // فاصل زمني ثانية واحدة لتجنب قيد الـ Rate Limit لخدمة Resend
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // 2. إيميل العميل الأصلي الكامل
     const emailHtml = `
