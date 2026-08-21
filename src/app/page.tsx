@@ -179,42 +179,57 @@ export default function Home() {
           امتلك امتياز تشغيل النطاق الإقليمي كـ "مالك استراتيجي للأصل الرقمي". أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
         </p>
 
-        <div className="bg-gradient-to-r from-white/[0.03] via-white/[0.06] to-white/[0.03] border border-[#D4AF37]/30 rounded-2xl p-4 text-xs md:text-sm text-gray-200 shadow-xl max-w-2xl mx-auto">
-          <span className="text-[#D4AF37] font-bold">هيكل توزيع العوائد:</span> يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] font-bold">%80</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] font-bold">%20</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
-        </div>
+        {/* بطاقة هيكل توزيع العوائد - زجاجية بتأثير البروز والارتفاع */}
+<div className="max-w-2xl mx-auto mb-10 bg-[#121926]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#D4AF37] hover:shadow-lg hover:shadow-[#D4AF37]/10 cursor-pointer">
+  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-center">
+    <span className="font-bold text-[#FFDF87] ml-1">هيكل توزيع العوائد:</span>
+    يستحق الشريك الاستراتيجي <span className="text-[#FFDF87] font-bold">80%</span> من صافي العوائد التشغيلية مقابل <span className="text-[#FFDF87] font-bold">20%</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
+  </p>
+</div>
 
-        {/* شبكة البطاقات الثلاث */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-right pt-4">
-          <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
-            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
-              <Zap className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">أتمتة تشغيلية بالذكاء الاصطناعي</h3>
-            <p className="text-xs text-gray-400 font-medium leading-relaxed">
-              أدوات مؤتمتة لإدارة العمليات اليومية للمرخص له، تضمن استمرارية العمل على مدار الساعة.
-            </p>
-          </div>
+{/* شبكة البطاقات الثلاث الزجاجية المحدثة بالألوان الجديدة */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-right max-w-4xl mx-auto">
+  
+  {/* بطاقة 1: حصرية نطاق عند التوفر */}
+  <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37] rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 hover:shadow-lg hover:shadow-[#D4AF37]/10 group cursor-pointer">
+    <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+    </div>
+    <h3 className="font-bold text-lg text-white mb-2">
+      حصرية نطاق <span className="text-[#FFDF87]">(عند التوفر)</span>
+    </h3>
+    <p className="text-xs text-gray-300 leading-relaxed">
+      حصرية جغرافية حسب توفر النطاق الفعلي، موثقة بالعقد لضمان السيادة الكاملة على النطاق.
+    </p>
+  </div>
 
-          <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
-            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
-              <Shield className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">توزيع مالی موثق (%80 / %20)</h3>
-            <p className="text-xs text-gray-400 font-medium leading-relaxed">
-              تحويلات مسجلة وفق دورة محددة في العقد، بعد الرسوم والضرائب، لضمان أعلى عائد استثماري.
-            </p>
-          </div>
+  {/* بطاقة 2: توزيع مالي موثق */}
+  <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37] rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 hover:shadow-lg hover:shadow-[#D4AF37]/10 group cursor-pointer">
+    <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    </div>
+    <h3 className="font-bold text-lg text-white mb-2">
+      توزيع مالي موثق <span className="text-[#FFDF87]">(80% / 20%)</span>
+    </h3>
+    <p className="text-xs text-gray-300 leading-relaxed">
+      تحويلات مسجلة وفق دورة محددة في العقد، بعد الرسوم والضرائب، لضمان أعلى عائد استثماري.
+    </p>
+  </div>
 
-          <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
-            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">حصرية نطاق عند التوفر</h3>
-            <p className="text-xs text-gray-400 font-medium leading-relaxed">
-              حصرية جغرافية حسب توفر النطاق الفعلي، موثقة بالعقد لضمان السيادة الكاملة على النطاق.
-            </p>
-          </div>
-        </div>
+  {/* بطاقة 3: أتمتة تشغيلية */}
+  <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37] rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 hover:shadow-lg hover:shadow-[#D4AF37]/10 group cursor-pointer">
+    <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    </div>
+    <h3 className="font-bold text-lg text-white mb-2">
+      أتمتة تشغيلية <span className="text-[#FFDF87]">(بالذكاء الاصطناعي)</span>
+    </h3>
+    <p className="text-xs text-gray-300 leading-relaxed">
+      أدوات مؤتمتة لإدارة العمليات اليومية للمرخص له، تضمن استمرارية العمل على مدار الساعة.
+    </p>
+  </div>
+
+</div>
 
         {/* النموذج الأول: استعراض التقرير الفني */}
         <div className="bg-[#0f1420]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 text-right shadow-2xl max-w-2xl mx-auto">
