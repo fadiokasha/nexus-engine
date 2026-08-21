@@ -1,455 +1,569 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  ShieldCheck, 
-  Building2, 
-  ShoppingBag, 
-  Cpu, 
-  Lock, 
-  FileText, 
-  CheckCircle2, 
-  Upload, 
-  CreditCard, 
-  ArrowLeft,
-  Sparkles,
-  Users,
-  TrendingUp,
-  X
-} from 'lucide-react';
+import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, Printer, ChevronLeft } from 'lucide-react';
 
-export default function HomePage() {
-  const [isQualificationOpen, setIsQualificationOpen] = useState(false);
-  const [isReportOpen, setIsReportOpen] = useState(false);
-  const [reportSubmitted, setReportSubmitted] = useState(false);
-  const [qualificationSubmitted, setQualificationSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // Form States
+export default function Home() {
   const [reportForm, setReportForm] = useState({ name: '', email: '', phone: '' });
-  const [qualForm, setQualForm] = useState({
-    name: '',
-    email: '',
-    passportNo: '',
-    region: 'مصر / الشرق الأوسط',
-    sectors: [] as string[],
-    receiptFile: '',
+  const [qualForm, setQualForm] = useState({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    sector: 'التجارة الإلكترونية والأنظمة اللوجستية', 
+    region: '', 
+    termsAgreed: false 
   });
 
-  const toggleSector = (sector: string) => {
-    setQualForm(prev => ({
-      ...prev,
-      sectors: prev.sectors.includes(sector)
-        ? prev.sectors.filter(s => s !== sector)
-        : [...prev.sectors, sector]
-    }));
+  const [loadingReport, setLoadingReport] = useState(false);
+  const [loadingQual, setLoadingQual] = useState(false);
+
+  const [modal, setModal] = useState<{ 
+    open: boolean; 
+    type: 'policy' | 'report' | 'qualification';
+    title: string; 
+    subtitle?: string;
+    message?: string; 
+    data?: any 
+  } | null>(null);
+
+  const openPolicyModal = (policyType: 'privacy' | 'disclaimer' | 'license') => {
+    if (policyType === 'privacy') {
+      setModal({
+        open: true,
+        type: 'policy',
+        title: 'سياسة الخصوصية - Nexus Engine',
+        message: 'نلتزم بشدة بحماية بياناتك الشخصية والتجارية. كافة البيانات المدخلة (الاسم، البريد الإلكتروني، رقم الجوال) يتم استخدامها حصرياً لأغراض التواصل والتأهيل الاستثماري، ولا يتم مشاركتها أو بيعها لأي طرف ثالث خارج إطار تفعيل التشغيل.',
+      });
+    } else if (policyType === 'disclaimer') {
+      setModal({
+        open: true,
+        type: 'policy',
+        title: 'إخلاء المسؤولية القانونية',
+        message: 'المعلومات والتقارير المقدمة في هذه المنصة هي لأغراض التقييم والتأهيل الاستثماري والتشغيلي. تقديم هذا الطلب لا يعني قبولاً مضموناً أو تعاقداً نهائياً، بل يخضع لعملية المراجعة الفنية والقانونية من قبل فريق Nexus Engine.',
+      });
+    } else if (policyType === 'license') {
+      setModal({
+        open: true,
+        type: 'policy',
+        title: 'وثيقة الترخيص والسيادة التشغيلية',
+        message: 'تنظم وثيقة الترخيص العلاقة الاستراتيجية بين الشريك والمنصة؛ حيث يحصل الشريك على حق تشغيل النطاق الجغرافي المعتمد بنسبة عوائد تشغيلية 80% للشريك مقابل 20% لرسوم تشغيل المنصة وأتمتة الذكاء الاصطناعي والدعم البرمجي.',
+      });
+    }
   };
 
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingReport(true);
     try {
-      await fetch('/api/register', {
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...reportForm, type: 'report' }),
+        body: JSON.stringify({ type: 'report', ...reportForm }),
       });
-      setReportSubmitted(true);
+      const data = await res.json();
+      if (data.success) {
+        setModal({
+          open: true,
+          type: 'report',
+          title: 'التقرير الفني والملف التقديمي الرسمي',
+          subtitle: 'منظومة Nexus Engine لإدارة الأصول الرقمية المؤتمتة',
+          data: {
+            name: reportForm.name,
+            email: reportForm.email,
+            phone: reportForm.phone
+          }
+        });
+        setReportForm({ name: '', email: '', phone: '' });
+      } else {
+        alert(data.error || 'حدث خطأ أثناء إرسال الطلب');
+      }
     } catch (err) {
-      console.error(err);
+      alert('حدث خطأ في الاتصال بالسيرفر');
     } finally {
-      setLoading(false);
+      setLoadingReport(false);
     }
   };
 
   const handleQualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!qualForm.termsAgreed) {
+      alert('يرجى الموافقة على الشروط والأحكام أولاً');
+      return;
+    }
+    setLoadingQual(true);
     try {
-      await fetch('/api/register', {
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...qualForm, type: 'qualification', fee: '600$' }),
+        body: JSON.stringify({ type: 'qualification', ...qualForm }),
       });
-      setQualificationSubmitted(true);
+      const data = await res.json();
+      if (data.success) {
+        setModal({
+          open: true,
+          type: 'qualification',
+          title: 'اعتماد طلب التأهيل ومسودة الاتفاقية',
+          subtitle: 'اتفاقية مشاركة رقمية وتفعيل إقليمي حصري',
+          data: {
+            partner: qualForm.name,
+            email: qualForm.email,
+            phone: qualForm.phone,
+            region: qualForm.region || 'الشرق الأوسط وشمال أفريقيا',
+            sector: qualForm.sector,
+          }
+        });
+        setQualForm({ 
+          name: '', 
+          email: '', 
+          phone: '', 
+          sector: 'التجارة الإلكترونية والأنظمة اللوجستية', 
+          region: '', 
+          termsAgreed: false 
+        });
+      } else {
+        alert(data.error || 'حدث خطأ أثناء إرسال الطلب');
+      }
     } catch (err) {
-      console.error(err);
+      alert('حدث خطأ في الاتصال بالسيرفر');
     } finally {
-      setLoading(false);
+      setLoadingQual(false);
     }
   };
 
+  const handlePrintPDF = () => {
+    window.print();
+  };
+
   return (
-    <div className="min-h-screen bg-[#070a11] text-white font-sans dir-rtl text-right selection:bg-[#D4AF37] selection:text-black">
-      
-      {/* Header & Seat Badge */}
-      <header className="border-b border-slate-800/80 bg-[#070a11]/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA771C] flex items-center justify-center font-bold text-black text-xl shadow-lg shadow-[#D4AF37]/20">
-              N
-            </div>
-            <div>
-              <h1 className="font-bold text-lg tracking-wide text-white">NEXUS ENGINE</h1>
-              <p className="text-xs text-slate-400">منظومة إدارة الأصول الرقمية المؤتمتة</p>
-            </div>
+    <main className="min-h-screen bg-[#07090e] text-white selection:bg-[#D4AF37] selection:text-black font-sans relative overflow-x-hidden pb-12">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-radial from-[#D4AF37]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
+
+      {/* الهيدر العلوي */}
+      <header className="w-full max-w-6xl mx-auto px-4 py-6 flex flex-wrap justify-between items-center gap-4 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA771C] flex items-center justify-center font-black text-black text-xl shadow-lg shadow-[#D4AF37]/20">
+            N
           </div>
-          
-          <div className="flex items-center gap-2 bg-[#0f172a] border border-[#D4AF37]/30 px-3 py-1.5 rounded-full shadow-inner">
-            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
-            <span className="text-xs font-semibold text-amber-200">المقاعد المتاحة: 15 مقعداً استراتيجياً</span>
+          <div>
+            <span className="font-extrabold text-lg tracking-wider text-white block leading-none">NEXUS ENGINE</span>
+            <span className="text-[10px] text-gray-400">برنامج ترخيص وشراكة تشغيل رقمي</span>
           </div>
+        </div>
+
+        <div className="inline-flex items-center gap-2 bg-white/[0.03] border border-[#D4AF37]/30 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4AF37]">
+          <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+          المقاعد المتاحة: 15 مقعداً استراتيجياً
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-20 px-4 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="max-w-4xl mx-auto px-4 pt-10 space-y-12 text-center">
+        <div className="inline-block bg-white/[0.02] border border-white/10 rounded-full px-4 py-1.5 text-xs text-gray-300 backdrop-blur-md">
+          تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
+        </div>
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-300 text-xs mb-8">
-            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-            تحالف الـ 15 الاستراتيجي — سيادة تشغيلية وحرية زمنية
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-medium text-slate-200 mb-2">
-  منظومة إدارة الأصول الرقمية المؤتمتة
-</h2>
-
-<div className="relative inline-block my-2">
-  {/* خلفية التوهج الذهبي النخبوية */}
-  <div className="absolute -inset-2 bg-gradient-to-r from-[#D4AF37]/30 via-amber-500/20 to-[#AA771C]/30 rounded-2xl blur-2xl opacity-80 pointer-events-none"></div>
-
-  {/* العنوان الرئيسي بالتدرج والتأثير الذهبي */}
-  <h1 className="relative text-4xl sm:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-[#D4AF37] to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(212,175,55,0.35)]">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center leading-snug my-6">
+  <span className="block text-white mb-3">
+    منظومة إدارة الأصول الرقمية المؤتمتة
+  </span>
+  <span className="block bg-gradient-to-r from-[#C38F00] via-[#FFDF87] to-[#C38F00] bg-clip-text text-transparent font-black tracking-wider mt-2">
     NEXUS ENGINE
-  </h1>
-</div>
+  </span>
+</h1>
 
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-8">
-            امتلك امتياز تشغيل النطاق الإقليمي كـ &quot;مالك استراتيجي للأصل الرقمي&quot;. أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
-          </p>
+        <p className="text-sm md:text-base text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
+          امتلك امتياز تشغيل النطاق الإقليمي كـ "مالك استراتيجي للأصل الرقمي". أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
+        </p>
 
-          {/* Revenue Distribution Card */}
-          <div className="max-w-xl mx-auto mb-10 bg-slate-900/90 border border-[#D4AF37]/30 rounded-2xl p-4 sm:p-6 backdrop-blur-md shadow-2xl">
-            <p className="text-sm font-semibold text-amber-400 mb-2">هيكل توزيع العوائد التلقائي</p>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              يستحق الشريك الاستراتيجي <span className="text-amber-300 font-bold">80% من صافي العوائد التشغيلية</span> مقابل <span className="text-slate-400">20% رسوم تشغيل المنصة والذكاء الاصطناعي</span>.
+        <div className="bg-gradient-to-r from-white/[0.03] via-white/[0.06] to-white/[0.03] border border-[#D4AF37]/30 rounded-2xl p-4 text-xs md:text-sm text-gray-200 shadow-xl max-w-2xl mx-auto">
+          <span className="text-[#D4AF37] font-bold">هيكل توزيع العوائد:</span> يستحق الشريك الاستراتيجي <span className="text-[#D4AF37] font-bold">%80</span> من صافي العوائد التشغيلية مقابل <span className="text-[#D4AF37] font-bold">%20</span> رسوم تشغيل المنصة والذكاء الاصطناعي.
+        </div>
+
+        {/* شبكة البطاقات الثلاث */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-right pt-4">
+          <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
+            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
+              <Zap className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white mb-2">أتمتة تشغيلية بالذكاء الاصطناعي</h3>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              أدوات مؤتمتة لإدارة العمليات اليومية للمرخص له، تضمن استمرارية العمل على مدار الساعة.
             </p>
           </div>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={() => setIsQualificationOpen(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-bold text-base shadow-lg shadow-[#D4AF37]/25 hover:brightness-110 transition flex items-center justify-center gap-2"
-            >
-              <CreditCard className="w-5 h-5" />
-              حجز النطاق والترخيص الإقليمي ($600)
-            </button>
-            <button
-              onClick={() => setIsReportOpen(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900/80 border border-slate-700 text-slate-200 font-medium text-base hover:bg-slate-800 transition flex items-center justify-center gap-2"
-            >
+          <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
+            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
+              <Shield className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white mb-2">توزيع مالی موثق (%80 / %20)</h3>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              تحويلات مسجلة وفق دورة محددة في العقد، بعد الرسوم والضرائب، لضمان أعلى عائد استثماري.
+            </p>
+          </div>
+
+          <div className="bg-[#121926]/60 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 rounded-2xl p-6 transition-all duration-300 shadow-xl hover:-translate-y-1 group">
+            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white mb-2">حصرية نطاق عند التوفر</h3>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              حصرية جغرافية حسب توفر النطاق الفعلي، موثقة بالعقد لضمان السيادة الكاملة على النطاق.
+            </p>
+          </div>
+        </div>
+
+        {/* النموذج الأول: استعراض التقرير الفني */}
+        <div className="bg-[#0f1420]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 text-right shadow-2xl max-w-2xl mx-auto">
+          <div className="mb-6 text-center">
+            <h2 className="text-lg md:text-xl font-bold text-white flex items-center justify-center gap-2">
               <FileText className="w-5 h-5 text-[#D4AF37]" />
-              طلب التقرير الفني والملف التقديمي
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategic Modules Section */}
-      <section className="py-16 px-4 bg-slate-950/50 border-t border-slate-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl font-bold text-white mb-3">القطاعات الاستراتيجية المتاحة للتفعيل</h3>
-            <p className="text-slate-400 text-sm">أنظمة ومكونات برمجية مؤتمتة جاهزة للعمل داخل نطاقك الجغرافي</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md hover:border-[#D4AF37]/50 transition">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <span className="text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Module 01</span>
-              <h4 className="text-lg font-bold text-white mt-3 mb-2">العقارات الرقمية والوساطة</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">منظومة مؤتمتة لإدارة وعرض المشاريع العقارية والوساطة السحابية والربط بين المطورين والمستثمرين تلقائياً.</p>
-            </div>
-
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md hover:border-[#D4AF37]/50 transition">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5">
-                <ShoppingBag className="w-6 h-6" />
-              </div>
-              <span className="text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Module 02</span>
-              <h4 className="text-lg font-bold text-white mt-3 mb-2">التجارة الإلكترونية والأنظمة اللوجستية</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">بنية تحتية لتشغيل شبكات التجارة السحابية، أتمتة الطلبات، وتتبع الشحنات والربط اللوجستي الذكي.</p>
-            </div>
-
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md hover:border-[#D4AF37]/50 transition">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5">
-                <Cpu className="w-6 h-6" />
-              </div>
-              <span className="text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Module 03</span>
-              <h4 className="text-lg font-bold text-white mt-3 mb-2">الخدمات التقنية والحلول الذكية</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">تزويد القطاعات والمؤسسات بحلول الأتمتة، خوارزميات خدمة العملاء الذكية، وأنظمة المبيعات التلقائية.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategic Vision & Digital Leverage (Glassmorphism Cards) */}
-      <section className="py-16 px-4 relative">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 w-2 shrink-0 h-full bg-[#D4AF37]"></div>
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="w-6 h-6 text-[#D4AF37]" />
-              <h3 className="text-lg font-bold text-white">الرافعة الرقمية (Digital Leverage)</h3>
-            </div>
-            <p className="text-slate-300 text-sm leading-relaxed mb-6">
-              أنت لا تعمل كموظف تقني ولا تتولى مهام الكتابة أو البرمجة. المنظومة مُصممة لتمنحك أماناً وحرية زمنية كاملة؛ حيث تتولى الخوارزميات الذكية جميع العمليات والصيانة الفنية، بينما يتركز دورك في التوجيه الاستراتيجي وتحصيل العوائد.
+              <span>استعراض التقرير الفني والملف التقديمي</span>
+            </h2>
+            <p className="text-xs text-gray-400 mt-1">
+              تحميل واستعراض النظرة التقنية والهيكلية العامة لمنصة Nexus Engine
             </p>
-            <div className="flex items-center gap-4 pt-4 border-t border-white/10 text-xs text-amber-300 font-semibold">
-              <span>✓ أتمتة تشغيلية 100%</span>
-              <span>✓ حرية زمنية مطلقة</span>
-            </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl">
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="w-6 h-6 text-[#D4AF37]" />
-              <h3 className="text-lg font-bold text-white">رؤية المالك والسيادة الإقليمية</h3>
+          <form onSubmit={handleReportSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">الاسم الكامل</label>
+              <input
+                type="text"
+                required
+                placeholder="أدخل اسمك الكريم"
+                value={reportForm.name}
+                onChange={(e) => setReportForm({ ...reportForm, name: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
             </div>
-            <p className="text-slate-300 text-sm leading-relaxed mb-6">
-              ابتكرنا NEXUS ENGINE لتكون حلولاً سيادية تلغي الأعباء التشغيلية وتتيح إدارة الأصول الرقمية بأعلى مستويات الاقتدار. حصر المنظومة في 15 مقعداً إقليمياً يضمن التركيز الاستثماري العالي والحفاظ على القيمة السيادية والتنظيمية لكل نطاق جغرافي.
-            </p>
-            <div className="flex items-center gap-4 pt-4 border-t border-white/10 text-xs text-amber-300 font-semibold">
-              <span>15 مقعداً حصرياً فقط</span>
-              <span>حصرية النطاق الجغرافي</span>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">البريد الإلكتروني</label>
+              <input
+                type="email"
+                required
+                placeholder="name@company.com"
+                value={reportForm.email}
+                onChange={(e) => setReportForm({ ...reportForm, email: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
             </div>
-          </div>
 
-        </div>
-      </section>
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">رقم الجوال</label>
+              <input
+                type="tel"
+                required
+                placeholder="+20 123 456 7890"
+                value={reportForm.phone}
+                onChange={(e) => setReportForm({ ...reportForm, phone: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
+            </div>
 
-      {/* Modal 1: Qualification & $600 License */}
-      {isQualificationOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-[#0f172a] border border-[#D4AF37]/40 rounded-3xl max-w-xl w-full p-6 sm:p-8 relative shadow-2xl my-8">
-            <button 
-              onClick={() => setIsQualificationOpen(false)} 
-              className="absolute top-5 left-5 text-slate-400 hover:text-white"
+            <button
+              type="submit"
+              disabled={loadingReport}
+              className="w-full mt-2 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] text-black font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/40 hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <X className="w-6 h-6" />
+              <FileText className="w-4 h-4 text-black" />
+              <span>{loadingReport ? 'جاري تجهيز التقرير...' : 'عرض وتحميل التقرير الفني'}</span>
             </button>
+          </form>
+        </div>
 
-            {!qualificationSubmitted ? (
-              <>
-                <div className="mb-6">
-                  <span className="text-xs font-mono text-[#D4AF37] bg-[#D4AF37]/10 px-2.5 py-1 rounded-full border border-[#D4AF37]/20">
-                    رسوم الترخيص والتأسيس: $600
-                  </span>
-                  <h3 className="text-xl font-bold text-white mt-3">حجز النطاق وإصدار عقد المشاركة</h3>
-                  <p className="text-xs text-slate-400 mt-1">أدخل بياناتك المعتمدة لتوليد عقد اتفاقية المشاركة الموثق</p>
-                </div>
+        {/* النموذج الثاني: طلب التأهيل */}
+        <div className="bg-[#0f1420]/80 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right shadow-2xl max-w-2xl mx-auto relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
 
-                <form onSubmit={handleQualSubmit} className="space-y-4 text-xs sm:text-sm">
-                  <div>
-                    <label className="block text-slate-300 mb-1 font-medium">الاسم الكامل (مطابق للجواز)</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={qualForm.name}
-                      onChange={e => setQualForm({...qualForm, name: e.target.value})}
-                      placeholder="أدخل اسمك المعتمد" 
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] outline-none" 
-                    />
-                  </div>
+          <div className="mb-6 text-center">
+            <h2 className="text-lg md:text-xl font-extrabold text-[#D4AF37] mb-1 flex items-center justify-center gap-2">
+              <Building2 className="w-5 h-5 text-[#D4AF37]" />
+              <span>طلب التأهيل للامتياز الجغرافي والسيادة التشغيلية</span>
+            </h2>
+            <p className="text-xs text-gray-300">
+              قدم طلبك لنيل الامتياز الإقليمي الحصري كـ "مالك أصل رقمي مؤمتت" وحجز النطاق المستهدف
+            </p>
+          </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-slate-300 mb-1 font-medium">البريد الإلكتروني</label>
-                      <input 
-                        type="email" 
-                        required 
-                        value={qualForm.email}
-                        onChange={e => setQualForm({...qualForm, email: e.target.value})}
-                        placeholder="name@domain.com" 
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] outline-none" 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-300 mb-1 font-medium">رقم جواز السفر</label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={qualForm.passportNo}
-                        onChange={e => setQualForm({...qualForm, passportNo: e.target.value})}
-                        placeholder="رقم الجواز الرسمي" 
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] outline-none" 
-                      />
-                    </div>
-                  </div>
+          <form onSubmit={handleQualSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">الاسم الكامل</label>
+              <input
+                type="text"
+                required
+                placeholder="أدخل اسمك الكامل"
+                value={qualForm.name}
+                onChange={(e) => setQualForm({ ...qualForm, name: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
+            </div>
 
-                  <div>
-                    <label className="block text-slate-300 mb-1 font-medium">القطاعات المراد تفعيلها</label>
-                    <div className="grid grid-cols-1 gap-2 pt-1">
-                      {['العقارات الرقمية والوساطة', 'التجارة الإلكترونية والأنظمة اللوجستية', 'الخدمات التقنية والحلول الذكية'].map((sec) => (
-                        <label key={sec} className="flex items-center gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700">
-                          <input 
-                            type="checkbox" 
-                            checked={qualForm.sectors.includes(sec)}
-                            onChange={() => toggleSector(sec)}
-                            className="accent-[#D4AF37] w-4 h-4" 
-                          />
-                          <span className="text-xs text-slate-200">{sec}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">البريد الإلكتروني الرسمي</label>
+              <input
+                type="email"
+                required
+                placeholder="name@domain.com"
+                value={qualForm.email}
+                onChange={(e) => setQualForm({ ...qualForm, email: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
+            </div>
 
-                  {/* Bank Details & Receipt Section */}
-                  <div className="bg-slate-900/90 border border-amber-500/20 rounded-2xl p-4 mt-4 space-y-3">
-                    <div className="flex items-center justify-between text-xs text-amber-400 font-semibold">
-                      <span className="flex items-center gap-1.5"><CreditCard className="w-4 h-4" /> بيانات الحساب البنكي المباشر (IBAN)</span>
-                      <span>رسوم الترخيص: $600</span>
-                    </div>
-                    <div className="text-xs text-slate-300 font-mono space-y-1 bg-black/40 p-3 rounded-xl border border-white/5 dir-ltr text-left">
-                      <p><span className="text-slate-500">Bank Name:</span> Abu Dhabi Islamic Bank (ADIB)</p>
-                      <p><span className="text-slate-500">Account Name:</span> NEXUS ENGINE LTD</p>
-                      <p><span className="text-slate-500">IBAN:</span> EG79003600010000000012345678</p>
-                    </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">رقم الجوال الرسمي</label>
+              <input
+                type="tel"
+                required
+                placeholder="+20 123 456 7890"
+                value={qualForm.phone}
+                onChange={(e) => setQualForm({ ...qualForm, phone: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
+            </div>
 
-                    <div className="pt-2">
-                      <label className="block text-xs text-slate-300 mb-1">رفع صورة إشعار التحويل البنكي أو صورة الجواز</label>
-                      <div className="flex items-center justify-center border border-dashed border-slate-700 rounded-xl p-3 bg-slate-950/50 hover:border-[#D4AF37] transition cursor-pointer">
-                        <Upload className="w-4 h-4 text-slate-400 ml-2" />
-                        <span className="text-xs text-slate-400">اختر الملف أو الإشعار لتأكيد التحويل</span>
-                      </div>
-                    </div>
-                  </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">القطاع المستهدف</label>
+              <select
+                value={qualForm.sector}
+                onChange={(e) => setQualForm({ ...qualForm, sector: e.target.value })}
+                className="w-full bg-[#121824] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#D4AF37] transition-all"
+              >
+                <option value="التجارة الإلكترونية والأنظمة اللوجستية">التجارة الإلكترونية والأنظمة اللوجستية</option>
+                <option value="الذكاء الاصطناعي والحلول البرمجية">الذكاء الاصطناعي والحلول البرمجية</option>
+                <option value="الخدمات المالية والاستثمار الرقمي">الخدمات المالية والاستثمار الرقمي</option>
+              </select>
+            </div>
 
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400 pt-1">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>تشفير بيانات معتمد وفق أعلى معايير الخصوصية والسيادة الرقمية.</span>
-                  </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">النطاق الجغرافي المطلوب (المدينة / الدولة)</label>
+              <input
+                type="text"
+                required
+                placeholder="مثال: الشرق الأوسط وشمال أفريقيا / مصر / الإمارات"
+                value={qualForm.region}
+                onChange={(e) => setQualForm({ ...qualForm, region: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              />
+            </div>
 
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-bold text-sm hover:brightness-110 transition mt-4"
-                  >
-                    {loading ? 'جاري إرسال الطلب...' : 'تأكيد الحجز وتوليد عقد المشاركة ($600)'}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <div className="text-center py-8 space-y-4">
-                <CheckCircle2 className="w-16 h-16 text-emerald-400 mx-auto animate-bounce" />
-                <h3 className="text-2xl font-bold text-white">تم استقبال طلب الحجز بنجاح</h3>
-                <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                  تم إرسال مسودة العقد وتأكيد استلام الطلب إلى بريدك الإلكتروني المعتمد. سيتم مراجعة إشعار التحويل والاعتماد خلال الساعات القادمة.
-                </p>
-                <button 
-                  onClick={() => setIsQualificationOpen(false)}
-                  className="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700"
+            <div className="flex items-start gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={qualForm.termsAgreed}
+                onChange={(e) => setQualForm({ ...qualForm, termsAgreed: e.target.checked })}
+                className="mt-1 accent-[#D4AF37] cursor-pointer"
+              />
+              <label htmlFor="terms" className="text-[11px] text-gray-400 leading-relaxed cursor-pointer select-none">
+                أقر بأنني اطلعت ووافقت على{' '}
+                <button
+                  type="button"
+                  onClick={() => openPolicyModal('license')}
+                  className="text-[#D4AF37] underline hover:text-[#F3E5AB]"
                 >
-                  إغلاق النافذة
+                  وثيقة الترخيص
+                </button>{' '}
+                و{' '}
+                <button
+                  type="button"
+                  onClick={() => openPolicyModal('disclaimer')}
+                  className="text-[#D4AF37] underline hover:text-[#F3E5AB]"
+                >
+                  إخلاء المسؤولية
+                </button>{' '}
+                وأن تقديم هذا الطلب لا يعني قبولاً مضموناً إلا بعد المراجعة.
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loadingQual}
+              className="w-full mt-2 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] text-black font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/40 hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Send className="w-4 h-4 text-black" />
+              <span>{loadingQual ? 'جاري الحفظ والاعتماد...' : 'إرسال الطلب للمراجعة والاعتماد'}</span>
+            </button>
+          </form>
+        </div>
+
+        {/* الفوتر الملكي الفاخر بلمسات ذهبية وهيكلة احترافية */}
+        <footer className="w-full max-w-4xl mx-auto pt-16 pb-8 mt-20 relative print:hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+
+          <div className="bg-[#0c1019]/90 backdrop-blur-2xl border border-[#D4AF37]/25 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              
+              {/* شعار الماركة الفاخر */}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA771C] flex items-center justify-center font-black text-black text-lg shadow-md shadow-[#D4AF37]/20">
+                  N
+                </div>
+                <div className="text-right">
+                  <span className="font-extrabold text-sm tracking-widest text-white block leading-tight">NEXUS ENGINE</span>
+                  <span className="text-[10px] text-[#D4AF37] font-medium">Enterprise Sovereign Systems</span>
+                </div>
+              </div>
+
+              {/* أزرار السياسات بتنسيق زجاجي فاخر */}
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 text-xs">
+                <button 
+                  type="button" 
+                  onClick={() => openPolicyModal('license')} 
+                  className="px-4 py-2 rounded-xl bg-white/[0.02] border border-white/10 hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] text-gray-300 transition-all duration-300 font-semibold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>وثيقة الترخيص</span>
+                  <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => openPolicyModal('disclaimer')} 
+                  className="px-4 py-2 rounded-xl bg-white/[0.02] border border-white/10 hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] text-gray-300 transition-all duration-300 font-semibold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>إخلاء المسؤولية</span>
+                  <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => openPolicyModal('privacy')} 
+                  className="px-4 py-2 rounded-xl bg-white/[0.02] border border-white/10 hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] text-gray-300 transition-all duration-300 font-semibold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>سياسة الخصوصية</span>
+                  <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
                 </button>
               </div>
-            )}
+
+            </div>
+
+            {/* شريط حقوق الملكية السفلي */}
+            <div className="mt-6 pt-5 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
+              <div className="inline-flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>جميع الأنظمة محمية وتعمل بأتمتة كاملة</span>
+              </div>
+              <div>
+                <span>جميع الحقوق محفوظة © {new Date().getFullYear()} </span>
+                <span className="text-[#D4AF37] font-bold">NEXUS ENGINE</span>
+              </div>
+            </div>
+
           </div>
-        </div>
-      )}
+        </footer>
 
-      {/* Modal 2: Technical Report */}
-      {isReportOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-[#0f172a] border border-slate-700 rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-2xl">
-            <button 
-              onClick={() => setIsReportOpen(false)} 
-              className="absolute top-5 left-5 text-slate-400 hover:text-white"
-            >
-              <X className="w-6 h-6" />
-            </button>
+        {/* النافذة المنبثقة الشاملة (Modal) */}
+        {modal?.open && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200 print:p-0 print:static print:bg-white print:text-black">
+            <div className="bg-[#0f1420] border-t-2 border-t-[#D4AF37] border-x border-b border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full text-right relative shadow-2xl space-y-5 max-h-[88vh] overflow-y-auto print:max-h-none print:border-none print:shadow-none print:text-black">
+              
+              <button
+                onClick={() => setModal(null)}
+                className="absolute top-4 left-4 p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors print:hidden"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-            {!reportSubmitted ? (
-              <>
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold text-white">طلب التقرير الفني والملف التقديمي</h3>
-                  <p className="text-xs text-slate-400 mt-1">أدخل بياناتك لاستلام التقرير الفني الشامل مجاناً</p>
+              <div>
+                <h3 className="text-xl font-bold text-[#D4AF37]">{modal.title}</h3>
+                {modal.subtitle && (
+                  <p className="text-xs text-gray-400 mt-1">{modal.subtitle}</p>
+                )}
+              </div>
+
+              {modal.type === 'policy' && (
+                <div className="text-sm text-gray-300 leading-relaxed py-2">
+                  <p>{modal.message}</p>
                 </div>
+              )}
 
-                <form onSubmit={handleReportSubmit} className="space-y-4 text-xs sm:text-sm">
-                  <div>
-                    <label className="block text-slate-300 mb-1 font-medium">الاسم الكريم</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={reportForm.name}
-                      onChange={e => setReportForm({...reportForm, name: e.target.value})}
-                      placeholder="أدخل اسمك" 
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] outline-none" 
-                    />
+              {modal.type === 'report' && (
+                <div className="space-y-4">
+                  <div className="bg-white/[0.03] border border-white/10 rounded-xl p-3 text-xs text-gray-300 flex flex-wrap gap-4">
+                    <div><span className="text-gray-500">اسم المستفيد:</span> <strong className="text-white">{modal.data?.name}</strong></div>
+                    <div><span className="text-gray-500">البريد:</span> <strong className="text-white">{modal.data?.email}</strong></div>
+                    <div><span className="text-gray-500">الجوال:</span> <strong className="text-white">{modal.data?.phone}</strong></div>
                   </div>
 
-                  <div>
-                    <label className="block text-slate-300 mb-1 font-medium">البريد الإلكتروني</label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={reportForm.email}
-                      onChange={e => setReportForm({...reportForm, email: e.target.value})}
-                      placeholder="name@domain.com" 
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] outline-none" 
-                    />
+                  <div className="space-y-3 text-xs md:text-sm text-gray-300 leading-relaxed max-h-[40vh] overflow-y-auto pr-1">
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">1. النظرة العامة والمسارية التقنية</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">منظومة برمجية متكاملة لإدارة وتأهيل الأصول الرقمية المؤتمتة، توفر بنية تحتية سحابية تعتمد على الذكاء الاصطناعي لمعالجة العمليات دون أعباء تشغيلية بشرية.</p>
+                    </div>
+
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">2. محرك الأتمتة والسيادة التشغيلية</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">يتولى النظام الآلي ربط قواعد البيانات ومعالجة طلبات النطاق وتأمين الحماية، مع إمكانية متابعة المؤشرات التشغيلية والمالية عبر لوحة تحكم دقيقة.</p>
+                    </div>
+
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">3. نموذج توزيع العوائد (%80 / %20)</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">يستحق الشريك الاستراتيجي 80% من صافي العوائد التشغيلية مقابل 20% لتغطية رسوم تشغيل المنصة وأتمتة الذكاء الاصطناعي والدعم الفني.</p>
+                    </div>
+
+                    <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <h4 className="text-[#D4AF37] font-bold mb-1">4. الحصرية الإقليمية</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed">تضمن المنصة حصرية النطاق الجغرافي المسجل للشريك لمنع التضارب التشغيلي طوال فترة سريان العقد.</p>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-slate-300 mb-1 font-medium">رقم الجوال / الواتساب</label>
-                    <input 
-                      type="tel" 
-                      required 
-                      value={reportForm.phone}
-                      onChange={e => setReportForm({...reportForm, phone: e.target.value})}
-                      placeholder="+20 123 456 7890" 
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] outline-none" 
-                    />
+                  <div className="pt-2 flex flex-wrap gap-3 print:hidden">
+                    <a
+                      href="/technical-report.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download="Nexus_Engine_Technical_Report.pdf"
+                      className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all text-center"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>تحميل التقرير PDF</span>
+                    </a>
+                    <button
+                      onClick={handlePrintPDF}
+                      className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Printer className="w-4 h-4 text-[#D4AF37]" />
+                      <span>طباعة</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {modal.type === 'qualification' && (
+                <div className="space-y-4">
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl flex items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-bold text-emerald-300">تم تسجيل طلب التأهيل بنجاح</p>
+                      <p className="text-gray-400 mt-0.5">تم إرسال نسخة المراجعة ومسودة الاتفاقية إلى بريدك الإلكتروني.</p>
+                    </div>
                   </div>
 
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-bold text-sm hover:brightness-110 transition mt-2"
-                  >
-                    {loading ? 'جاري تجهيز التقرير...' : 'عرض وتحميل التقرير الفني PDF'}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <div className="text-center py-6 space-y-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-                <h3 className="text-xl font-bold text-white">تم إرسال التقرير الفني</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  تم إرسال النسخة الكاملة من التقرير الفني والملف التقديمي إلى بريدك الإلكتروني بنجاح.
-                </p>
-                <button 
-                  onClick={() => setIsReportOpen(false)}
-                  className="px-6 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700"
+                  <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 space-y-2 text-xs">
+                    <div className="flex justify-between"><span className="text-gray-400">الشريك المتقدم:</span><span className="font-bold text-[#D4AF37]">{modal.data?.partner}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">البريد الإلكتروني:</span><span className="font-bold text-[#D4AF37]">{modal.data?.email}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">النطاق المطلوب:</span><span className="font-bold text-[#D4AF37]">{modal.data?.region}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">القطاع:</span><span className="font-bold text-[#D4AF37]">{modal.data?.sector}</span></div>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-white/5 flex justify-end print:hidden">
+                <button
+                  onClick={() => setModal(null)}
+                  className="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
-                  إغلاق النافذة
+                  إغلاق
                 </button>
               </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 py-8 text-center text-xs text-slate-500">
-        <p>© 2026 NEXUS ENGINE. جميع الحقوق محفوظة.</p>
-      </footer>
-    </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </main>
   );
 }
