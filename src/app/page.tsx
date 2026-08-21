@@ -113,11 +113,18 @@ export default function HomePage() {
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-medium text-slate-200 mb-2">
-            منظومة إدارة الأصول الرقمية المؤتمتة
-          </h2>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-amber-200 via-[#D4AF37] to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(212,175,55,0.25)]">
-            NEXUS ENGINE
-          </h1>
+  منظومة إدارة الأصول الرقمية المؤتمتة
+</h2>
+
+<div className="relative inline-block my-2">
+  {/* خلفية التوهج الذهبي النخبوية */}
+  <div className="absolute -inset-2 bg-gradient-to-r from-[#D4AF37]/30 via-amber-500/20 to-[#AA771C]/30 rounded-2xl blur-2xl opacity-80 pointer-events-none"></div>
+
+  {/* العنوان الرئيسي بالتدرج والتأثير الذهبي */}
+  <h1 className="relative text-4xl sm:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-[#D4AF37] to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(212,175,55,0.35)]">
+    NEXUS ENGINE
+  </h1>
+</div>
 
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-8">
             امتلك امتياز تشغيل النطاق الإقليمي كـ &quot;مالك استراتيجي للأصل الرقمي&quot;. أتمتة برمجية كاملة تتولى التشغيل والذكاء الاصطناعي دون أعباء إدارية أو صيانة.
