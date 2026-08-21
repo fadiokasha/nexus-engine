@@ -4,6 +4,14 @@ import React, { useState } from 'react';
 import { Shield, Zap, Lock, X, FileText, Send, CheckCircle2, Download, Building2, Printer, ChevronLeft } from 'lucide-react';
 
 export default function Home() {
+  const [modal, setModal] = useState<{
+    open: boolean;
+    type: 'policy' | 'report' | 'qualification';
+    title: string;
+    subtitle?: string;
+    message?: string;
+    data?: any;
+  } | null>(null);
   // حالات التحكم بالنوافذ المنبثقة والاستمارات
 const [isQualificationOpen, setIsQualificationOpen] = useState(false);
 const [isReportOpen, setIsReportOpen] = useState(false);
